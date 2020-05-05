@@ -1,0 +1,9 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Text in function
+#: remove-taxonomy-url/includes/class-remove-taxonomy-url-settings-api.php:1
+msgid "Choose File"
+msgstr ""
