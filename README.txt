@@ -1,10 +1,10 @@
 === Remove Taxonomy Url ===
 Contributors: sungraizfaryad
 Donate link: https://sungraizfaryad.com/
-Tags: cpt, taxonomy, custom taxonomy,
+Tags: cpt, taxonomy, custom taxonomy, slug,taxonomy slug
 Requires at least: 5.0
-Tested up to: 5.3
-Stable tag: 1.0.0
+Tested up to: 5.4.1
+Stable tag: 1.0.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -31,8 +31,15 @@ But there is also a limit in WordPress and that's when this plugin comes into th
 
 You need to save the permalinks to fix this issue. Please navigate to Dashboard > Settings > Permalinks and save them twice.
 
+### Links
+
+- [GitHub Repository](https://github.com/sungraizfaryad/remove-taxonomy-url)
+
 
 == Changelog ==
+
+= 1.0.1 =
+* Test upto WordPress 5.4.1.
 
 = 1.0.0 =
 * Initial Version.
