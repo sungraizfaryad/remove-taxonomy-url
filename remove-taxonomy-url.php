@@ -14,7 +14,7 @@
  * Plugin Name:       Remove Taxonomy URL
  * Plugin URI:        https://wordpress.org/plugins/remove-taxonomy-url
  * Description:       This is a purpose oriented plugin which just removes the custom taxonomies slugs from URL.
- * Version:           1.0.1
+ * Version:           1.0.4
  * Author:            Sungraiz Faryad
  * Author URI:        www.sungraizfaryad.com
  * License:           GPL-2.0+
