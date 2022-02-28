@@ -4,7 +4,7 @@ Donate link: https://sungraizfaryad.com/
 Tags: cpt, taxonomy, custom taxonomy, slug,taxonomy slug
 Requires at least: 5.0
 Tested up to: 5.9.1
-Stable tag: 1.0.2
+Stable tag: 1.0.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -38,8 +38,11 @@ You need to save the permalinks to fix this issue. Please navigate to Dashboard 
 
 == Changelog ==
 
-= 1.0.2 =
+= 1.0.4 =
 * Test upto WordPress 5.9.1.
+
+= 1.0.2 =
+* Test upto WordPress 5.6
 
 = 1.0.1 =
 * Test upto WordPress 5.4.1.
