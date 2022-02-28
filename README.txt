@@ -38,6 +38,9 @@ You need to save the permalinks to fix this issue. Please navigate to Dashboard 
 
 == Changelog ==
 
+= 1.0.2 =
+* Test upto WordPress 5.9.1.
+
 = 1.0.1 =
 * Test upto WordPress 5.4.1.
 
