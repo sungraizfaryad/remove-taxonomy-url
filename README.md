@@ -1,20 +1,38 @@
-# Remove Taxonomy Url
-This is a purpose-oriented plugin that simply remove the taxonomy slugs from URL.
+# Remove Taxonomy URL
 
-## Description
-Permalinks, as the name suggests, are permanent links to pages or posts, categories or tags on your website which makes it easier for your visitors and search engines to navigate around your website.
+Strip custom taxonomy slugs from URLs. Optional 301 redirects, hierarchical terms, pagination support, and slug-collision detection.
 
-How many times have you closed a website or not bookmarked it because the URL looked fishy? Plenty of times, isn’t it? There is something about long URLs with weird numbers and characters that make you not want to look at them. Custom Permalinks can change that notion. WordPress has the option to create short, clear, simple, and to-the-point permalinks so that your URLs look professional along with your website.
+**Current version:** 3.0.0 · **Requires:** WordPress 5.0+ · PHP 7.4+
 
-But there is also a limit in WordPress and that's when this plugin comes into the play. By using this plugin, you can simplify the permalinks further by removing the base slugs.
+## What 3.0 adds
+
+- **301 redirect old URLs** — old `/taxonomy/term/` URLs redirect permanently to the new `/term/` so SEO equity is preserved.
+- **Hierarchical term URLs** — nested taxonomies resolve correctly (e.g. `/parent/child/`).
+- **Pagination support** — `/term/page/2/` works after the base slug is removed.
+- **Slug-collision detection** — warns when a term slug clashes with a page, post, or another taxonomy's term. Full audit available on the Health Check tab.
+
+All 3.0 features default OFF on upgrade so existing behavior is preserved until you opt in.
 
 ## Installation
-1. Upload the plugin files to the `/wp-content/plugins/remove-taxonomy-url` directory, or install the plugin through the WordPress plugins screen directly.
-2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Use the Settings > Remove Taxonomy Url screen to configure the plugin
 
-## Frequently Asked Questions
+1. Upload to `/wp-content/plugins/remove-taxonomy-url/`, or install via the WordPress plugins screen.
+2. Activate via the **Plugins** screen.
+3. Visit **Settings → Remove Taxonomy URL** and pick the taxonomies you want stripped.
+4. Save **Settings → Permalinks** twice to flush rewrite rules.
 
-##### I am facing a 404 error page after saving plugin settings?
+## Frequently asked questions
 
-You need to save the permalinks to fix this issue. Please navigate to Dashboard > Settings > Permalinks and save them twice.
+**404 errors after enabling?** Save **Settings → Permalinks** twice. WordPress regenerates rewrite rules on the second save.
+
+**Old `/taxonomy/term/` URLs returning 404?** Enable the **301 redirect old URLs** option in the plugin settings.
+
+**Does it work with nested taxonomies?** Yes — enable the **Hierarchical term URLs** option.
+
+**Slug collision with a page or post?** Enable **Conflict detection on save** (default ON) or run the Health Check audit.
+
+**Does it send telemetry?** No. No analytics, no remote calls, no tracking.
+
+## Links
+
+- [WP.org Plugin Page](https://wordpress.org/plugins/remove-taxonomy-url/)
+- [GitHub Repository](https://github.com/sungraizfaryad/remove-taxonomy-url)

@@ -6,17 +6,19 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              www.sungraizfaryad.com
+ * @link              https://www.sungraizfaryad.com
  * @since             1.0.0
  * @package           Remove_Taxonomy_Url
  *
  * @wordpress-plugin
  * Plugin Name:       Remove Taxonomy URL
- * Plugin URI:        https://wordpress.org/plugins/remove-taxonomy-url
- * Description:       This is a purpose oriented plugin that just removes the custom taxonomies slugs from URL.
- * Version:           1.0.6
+ * Plugin URI:        https://wordpress.org/plugins/remove-taxonomy-url/
+ * Description:       Strip custom taxonomy slugs from URLs. Optional 301 redirects, hierarchical term URLs, pagination support, and slug-collision detection.
+ * Version:           3.0.0
+ * Requires at least: 5.0
+ * Requires PHP:      7.4
  * Author:            Sungraiz Faryad
- * Author URI:        www.sungraizfaryad.com
+ * Author URI:        https://www.sungraizfaryad.com
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       remove-taxonomy-url
@@ -33,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'REMOVE_TAXONOMY_URL_VERSION', '1.0.6' );
+define( 'REMOVE_TAXONOMY_URL_VERSION', '3.0.0' );
 
 /**
  * The code that runs during plugin activation.

@@ -29,3 +29,19 @@
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
+
+global $wpdb;
+
+// Plugin options written by RTU_Options::maybe_migrate, the settings page, and the upgrade banner.
+delete_option( 'rtu_basics' );
+delete_option( 'rtu_db_version' );
+delete_option( 'rtu_30_notice_dismissed' );
+
+// Plugin transients (currently just rtu_needs_flush).
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary cleanup on uninstall; no caching API for bulk LIKE deletes.
+$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_rtu\\_%'" );
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- See above.
+$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_timeout\\_rtu\\_%'" );
+
+// Force rewrite rule regeneration on next request so removed taxonomies stop matching custom rules.
+delete_option( 'rewrite_rules' );
