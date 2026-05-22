@@ -123,6 +123,7 @@ class Remove_Taxonomy_Url {
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-url-rewriter.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-redirect-handler.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-pagination-fix.php';
 
 		$this->loader = new Remove_Taxonomy_Url_Loader();
 
@@ -162,6 +163,11 @@ class Remove_Taxonomy_Url {
 		$redirect = new RTU_Redirect_Handler();
 		$redirect->register_hooks( $this->loader );
 
+		$pagination = new RTU_Pagination_Fix();
+		$pagination->register_hooks( $this->loader );
+
+		$this->loader->add_action( 'admin_init', $this, 'maybe_flush_rewrite_rules', 99 );
+
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
@@ -169,6 +175,19 @@ class Remove_Taxonomy_Url {
 
 		$this->loader->add_action( 'admin_init', $plugin_settings, 'rtu_settings_init' );
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'settings_menu' );
+	}
+
+	/**
+	 * Flush rewrite rules once after a migration or settings toggle armed the
+	 * `rtu_needs_flush` transient. Cleared after the flush so it only runs once.
+	 *
+	 * @return void
+	 */
+	public function maybe_flush_rewrite_rules() {
+		if ( get_transient( 'rtu_needs_flush' ) ) {
+			flush_rewrite_rules( false );
+			delete_transient( 'rtu_needs_flush' );
+		}
 	}
 
 	/**
