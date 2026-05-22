@@ -27,6 +27,11 @@
  * @subpackage Remove_Taxonomy_Url/includes
  * @author     Sungraiz Faryad <sungraiz@gmail.com>
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class Remove_Taxonomy_Url_Settings_API {
 	/**
 	 * Settings sections array.
