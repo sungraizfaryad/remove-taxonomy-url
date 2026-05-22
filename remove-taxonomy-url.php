@@ -61,6 +61,12 @@ register_deactivation_hook( __FILE__, 'deactivate_remove_taxonomy_url' );
  * admin-specific hooks, and public-facing site hooks.
  */
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-rtu-options.php';
+
+// Belt-and-braces cache invalidation: flush whenever rtu_basics changes, regardless of who wrote it.
+add_action( 'updated_option', [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
+add_action( 'added_option',   [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
+add_action( 'deleted_option', [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
+
 require plugin_dir_path( __FILE__ ) . 'includes/class-remove-taxonomy-url.php';
 
 /**

@@ -85,4 +85,48 @@ final class RTU_Options {
     public static function is_feature_enabled( $feature ) {
         return ! empty( self::get( $feature, 0 ) );
     }
+
+    /**
+     * Sanitize callback for register_setting(). Whitelists taxonomies against currently
+     * registered non-built-in taxonomies; coerces feature flags to 0/1; defaults the
+     * collision detector ON when its checkbox is absent from the submission.
+     *
+     * @param mixed $input Raw input from the settings form.
+     * @return array
+     */
+    public static function sanitize( $input ) {
+        $input = is_array( $input ) ? $input : [];
+
+        $registered = array_keys( get_taxonomies( [ '_builtin' => false ] ) );
+        $selected   = isset( $input['rtu_post_types'] ) && is_array( $input['rtu_post_types'] )
+            ? $input['rtu_post_types']
+            : [];
+
+        $clean                          = [];
+        $clean['rtu_post_types']        = array_values( array_intersect( $selected, $registered ) );
+        $clean['rtu_enable_redirect']   = ! empty( $input['rtu_enable_redirect'] ) ? 1 : 0;
+        $clean['rtu_enable_pagination'] = ! empty( $input['rtu_enable_pagination'] ) ? 1 : 0;
+        $clean['rtu_enable_hierarchy']  = ! empty( $input['rtu_enable_hierarchy'] ) ? 1 : 0;
+        // Collision detection defaults ON: only treated as off when the key is present and explicitly empty/zero.
+        $clean['rtu_enable_collision']  = array_key_exists( 'rtu_enable_collision', $input )
+            ? ( ! empty( $input['rtu_enable_collision'] ) ? 1 : 0 )
+            : 1;
+        $clean['rtu_db_version']        = self::DB_VERSION;
+
+        self::flush_cache();
+        return $clean;
+    }
+
+    /**
+     * `updated_option` callback that drops the per-request cache when our option changes.
+     * Insurance against writers that bypass the sanitize callback (WP-CLI, REST, unit tests).
+     *
+     * @param string $option Option name that just updated.
+     * @return void
+     */
+    public static function maybe_flush_on_update( $option ) {
+        if ( self::OPTION_KEY === $option ) {
+            self::flush_cache();
+        }
+    }
 }

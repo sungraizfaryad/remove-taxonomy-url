@@ -39,4 +39,60 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $this->assertFalse( RTU_Options::is_feature_enabled( 'rtu_enable_pagination' ) );
         $this->assertFalse( RTU_Options::is_feature_enabled( 'rtu_enable_missing' ) );
     }
+
+    public function test_sanitize_filters_unknown_taxonomies() {
+        register_taxonomy( 'genre', 'post' );
+        $input = [
+            'rtu_post_types'        => [ 'genre', 'fake_tax', '<script>' ],
+            'rtu_enable_redirect'   => '1',
+            'rtu_enable_pagination' => '',
+            'rtu_enable_hierarchy'  => 'on',
+            'rtu_enable_collision'  => 0,
+        ];
+        $clean = RTU_Options::sanitize( $input );
+        $this->assertSame( [ 'genre' ], $clean['rtu_post_types'] );
+        $this->assertSame( 1, $clean['rtu_enable_redirect'] );
+        $this->assertSame( 0, $clean['rtu_enable_pagination'] );
+        $this->assertSame( 1, $clean['rtu_enable_hierarchy'] );
+        $this->assertSame( 0, $clean['rtu_enable_collision'] );
+        $this->assertSame( '3.0', $clean['rtu_db_version'] );
+        unregister_taxonomy( 'genre' );
+    }
+
+    public function test_sanitize_handles_non_array_input() {
+        $clean = RTU_Options::sanitize( 'not-an-array' );
+        $this->assertSame( [], $clean['rtu_post_types'] );
+        $this->assertSame( 0, $clean['rtu_enable_redirect'] );
+        $this->assertSame( 1, $clean['rtu_enable_collision'] ); // defaults ON
+    }
+
+    public function test_sanitize_collision_defaults_on_when_key_missing() {
+        $clean = RTU_Options::sanitize( [] );
+        $this->assertSame( 1, $clean['rtu_enable_collision'] );
+    }
+
+    public function test_maybe_flush_on_update_clears_cache_for_rtu_basics() {
+        update_option( 'rtu_basics', [ 'rtu_post_types' => [ 'first' ] ] );
+        RTU_Options::flush_cache();
+        $this->assertSame( [ 'first' ], RTU_Options::get( 'rtu_post_types' ) );
+
+        // Direct update without flush — without the auto-flush hook the cache would lie.
+        update_option( 'rtu_basics', [ 'rtu_post_types' => [ 'second' ] ] );
+        // The updated_option action fires synchronously; if we registered the auto-flush
+        // hook in plugin bootstrap, cache should already be invalidated.
+        RTU_Options::maybe_flush_on_update( 'rtu_basics' );
+        $this->assertSame( [ 'second' ], RTU_Options::get( 'rtu_post_types' ) );
+    }
+
+    public function test_maybe_flush_on_update_ignores_other_options() {
+        update_option( 'rtu_basics', [ 'rtu_post_types' => [ 'x' ] ] );
+        RTU_Options::flush_cache();
+        RTU_Options::get( 'rtu_post_types' ); // prime cache
+        RTU_Options::maybe_flush_on_update( 'siteurl' );
+        // Cache should still be primed (we'd see the original value).
+        $reflection = new ReflectionClass( 'RTU_Options' );
+        $prop       = $reflection->getProperty( 'cache' );
+        $prop->setAccessible( true );
+        $this->assertNotNull( $prop->getValue() );
+    }
 }
