@@ -122,6 +122,7 @@ class Remove_Taxonomy_Url {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-remove-taxonomy-url-admin.php';
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-url-rewriter.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-redirect-handler.php';
 
 		$this->loader = new Remove_Taxonomy_Url_Loader();
 
@@ -157,6 +158,9 @@ class Remove_Taxonomy_Url {
 
 		$rewriter = new RTU_Url_Rewriter();
 		$rewriter->register_hooks( $this->loader );
+
+		$redirect = new RTU_Redirect_Handler();
+		$redirect->register_hooks( $this->loader );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
