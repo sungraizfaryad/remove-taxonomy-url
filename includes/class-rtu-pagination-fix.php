@@ -9,6 +9,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+/**
+ * Injects rewrite rules that let `/term/page/N/` and `/term/` resolve correctly when
+ * a taxonomy's base slug has been stripped from the URL.
+ */
 class RTU_Pagination_Fix {
 
 	/**
@@ -31,14 +35,14 @@ class RTU_Pagination_Fix {
 	 */
 	public function inject_rules( $rules ) {
 		if ( ! RTU_Options::is_feature_enabled( 'rtu_enable_pagination' ) ) {
-			return is_array( $rules ) ? $rules : [];
+			return is_array( $rules ) ? $rules : array();
 		}
 		if ( ! is_array( $rules ) ) {
-			$rules = [];
+			$rules = array();
 		}
 		foreach ( RTU_Options::get_active_taxonomies() as $slug ) {
 			$rules['^([^/]+)/page/?([0-9]{1,})/?$'] = 'index.php?' . $slug . '=$matches[1]&paged=$matches[2]';
-			$rules['^([^/]+)/?$']                    = 'index.php?' . $slug . '=$matches[1]';
+			$rules['^([^/]+)/?$']                   = 'index.php?' . $slug . '=$matches[1]';
 		}
 		return $rules;
 	}

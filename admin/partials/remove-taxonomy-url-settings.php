@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Provide a admin area view for the plugin
  *
@@ -54,7 +53,7 @@ class Remove_Taxonomy_Url_Settings {
 			esc_html__( 'Remove Taxonomy URL', 'remove-taxonomy-url' ),
 			'manage_options',
 			'rtu_settings_page',
-			[ $this, 'rtu_settings_page' ]
+			array( $this, 'rtu_settings_page' )
 		);
 	}
 

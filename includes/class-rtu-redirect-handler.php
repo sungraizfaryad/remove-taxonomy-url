@@ -9,6 +9,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+/**
+ * Issues 301 redirects from the legacy `/taxonomy/term/` URLs to the slug-stripped
+ * `/term/` URLs when the feature is enabled.
+ */
 class RTU_Redirect_Handler {
 
 	/**

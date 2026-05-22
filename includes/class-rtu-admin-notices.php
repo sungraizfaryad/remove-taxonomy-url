@@ -9,6 +9,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+/**
+ * Renders a one-time upgrade banner after the 3.0 migration and handles its
+ * dismissal via a nonced admin-post action.
+ */
 class RTU_Admin_Notices {
 
 	const OPTION = 'rtu_30_notice_dismissed';

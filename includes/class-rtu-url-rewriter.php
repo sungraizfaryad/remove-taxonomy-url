@@ -13,6 +13,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+/**
+ * Strips taxonomy slugs from term permalinks and remaps incoming requests back to the
+ * matching taxonomy query var.
+ */
 class RTU_Url_Rewriter {
 
 	/**
@@ -26,7 +30,7 @@ class RTU_Url_Rewriter {
 			return;
 		}
 		$loader->add_filter( 'term_link', $this, 'filter_term_link', 10, 3 );
-		$loader->add_filter( 'request',   $this, 'filter_request', 1, 1 );
+		$loader->add_filter( 'request', $this, 'filter_request', 1, 1 );
 	}
 
 	/**
@@ -111,7 +115,7 @@ class RTU_Url_Rewriter {
 	private function prepend_parents( $term, $taxonomy ) {
 		$path    = $term->slug;
 		$parent  = (int) $term->parent;
-		$visited = [ (int) $term->term_id => true ];
+		$visited = array( (int) $term->term_id => true );
 		$safety  = 0;
 
 		while ( $parent && $safety++ < 25 ) {

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -73,8 +72,7 @@ class Remove_Taxonomy_Url_Admin {
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/remove-taxonomy-url-settings.php';
-
+		require_once plugin_dir_path( __DIR__ ) . 'admin/partials/remove-taxonomy-url-settings.php';
 	}
 
 	/**
@@ -97,13 +95,14 @@ class Remove_Taxonomy_Url_Admin {
 		 */
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/remove-taxonomy-url-admin.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
 	 * Register the JavaScript for the admin area.
 	 *
 	 * @since    1.0.0
+	 *
+	 * @param string $hook_suffix Current admin screen's hook suffix (provided by admin_enqueue_scripts).
 	 */
 	public function enqueue_scripts( $hook_suffix = '' ) {
 
@@ -131,8 +130,5 @@ class Remove_Taxonomy_Url_Admin {
 				'failed'        => __( 'Audit failed.', 'remove-taxonomy-url' ),
 			)
 		);
-
 	}
-
 }
-

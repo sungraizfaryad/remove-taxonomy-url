@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This file is read by WordPress to generate the plugin information in the plugin
  * admin area. This file also includes all of the dependencies used by the plugin,
@@ -65,9 +64,9 @@ register_deactivation_hook( __FILE__, 'deactivate_remove_taxonomy_url' );
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-rtu-options.php';
 
 // Belt-and-braces cache invalidation: flush whenever rtu_basics changes, regardless of who wrote it.
-add_action( 'updated_option', [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
-add_action( 'added_option',   [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
-add_action( 'deleted_option', [ 'RTU_Options', 'maybe_flush_on_update' ], 10, 1 );
+add_action( 'updated_option', array( 'RTU_Options', 'maybe_flush_on_update' ), 10, 1 );
+add_action( 'added_option', array( 'RTU_Options', 'maybe_flush_on_update' ), 10, 1 );
+add_action( 'deleted_option', array( 'RTU_Options', 'maybe_flush_on_update' ), 10, 1 );
 
 require plugin_dir_path( __FILE__ ) . 'includes/class-remove-taxonomy-url.php';
 
@@ -84,7 +83,6 @@ function run_remove_taxonomy_url() {
 
 	$plugin = new Remove_Taxonomy_Url();
 	$plugin->run();
-
 }
 
 run_remove_taxonomy_url();

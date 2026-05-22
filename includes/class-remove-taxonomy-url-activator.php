@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Fired during plugin activation
  *
@@ -31,5 +30,4 @@ class Remove_Taxonomy_Url_Activator {
 		require_once plugin_dir_path( __FILE__ ) . 'class-rtu-options.php';
 		RTU_Options::maybe_migrate();
 	}
-
 }

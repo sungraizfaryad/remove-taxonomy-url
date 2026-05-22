@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The file that defines the core plugin class
  *
@@ -77,7 +76,6 @@ class Remove_Taxonomy_Url {
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
-
 	}
 
 	/**
@@ -102,33 +100,32 @@ class Remove_Taxonomy_Url {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-remove-taxonomy-url-loader.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-remove-taxonomy-url-loader.php';
 
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-remove-taxonomy-url-settings-api.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-remove-taxonomy-url-settings-api.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-remove-taxonomy-url-i18n.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-remove-taxonomy-url-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-remove-taxonomy-url-admin.php';
+		require_once plugin_dir_path( __DIR__ ) . 'admin/class-remove-taxonomy-url-admin.php';
 
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-url-rewriter.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-redirect-handler.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-pagination-fix.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-conflict-detector.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-admin-notices.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-url-rewriter.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-redirect-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-pagination-fix.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-conflict-detector.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-admin-notices.php';
 
 		$this->loader = new Remove_Taxonomy_Url_Loader();
-
 	}
 
 	/**
@@ -145,7 +142,6 @@ class Remove_Taxonomy_Url {
 		$plugin_i18n = new Remove_Taxonomy_Url_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
-
 	}
 
 	/**
@@ -237,5 +233,4 @@ class Remove_Taxonomy_Url {
 	public function get_version() {
 		return $this->version;
 	}
-
 }

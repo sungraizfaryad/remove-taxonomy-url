@@ -5,6 +5,7 @@
  *
  * @package Remove_Taxonomy_Url
  */
+
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
