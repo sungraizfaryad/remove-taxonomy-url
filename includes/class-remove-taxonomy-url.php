@@ -121,6 +121,8 @@ class Remove_Taxonomy_Url {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-remove-taxonomy-url-admin.php';
 
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-url-rewriter.php';
+
 		$this->loader = new Remove_Taxonomy_Url_Loader();
 
 	}
