@@ -1,0 +1,17 @@
+README.md
+Thumbs.db
+.DS_Store
+.github
+.git
+.gitattributes
+.gitignore
+.phpcs.xml.dist
+.phpunit.result.cache
+.svnignore
+composer.json
+composer.lock
+phpunit.xml.dist
+tests
+bin
+docs
+vendor
