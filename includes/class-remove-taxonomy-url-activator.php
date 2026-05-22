@@ -23,14 +23,13 @@
 class Remove_Taxonomy_Url_Activator {
 
 	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
+	 * Runs the 3.0 schema migration when the plugin is activated.
 	 *
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		require_once plugin_dir_path( __FILE__ ) . 'class-rtu-options.php';
+		RTU_Options::maybe_migrate();
 	}
 
 }

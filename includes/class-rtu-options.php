@@ -129,4 +129,50 @@ final class RTU_Options {
             self::flush_cache();
         }
     }
+
+    /**
+     * Migrate options from any older schema to the current DB version. Idempotent.
+     * Triggered by the activation hook, an upgrader_process_complete listener, and
+     * a plugins_loaded fallback.
+     *
+     * On a first 3.0 boot:
+     *   - Merges new feature-flag defaults into rtu_basics without clobbering rtu_post_types
+     *   - Sets rtu_db_version = '3.0'
+     *   - Arms the upgrade banner by setting rtu_30_notice_dismissed = 0
+     *   - Sets the rtu_needs_flush transient so admin_init can flush rewrite rules once
+     *
+     * @return void
+     */
+    public static function maybe_migrate() {
+        $current = get_option( 'rtu_db_version', '' );
+        if ( self::DB_VERSION === $current ) {
+            return;
+        }
+
+        $stored = get_option( self::OPTION_KEY, [] );
+        $stored = is_array( $stored ) ? $stored : [];
+
+        $defaults = [
+            'rtu_post_types'        => [],
+            'rtu_enable_redirect'   => 0,
+            'rtu_enable_pagination' => 0,
+            'rtu_enable_hierarchy'  => 0,
+            'rtu_enable_collision'  => 1,
+            'rtu_db_version'        => self::DB_VERSION,
+        ];
+
+        $merged                     = array_merge( $defaults, $stored );
+        $merged['rtu_db_version']   = self::DB_VERSION;
+
+        update_option( self::OPTION_KEY, $merged );
+        update_option( 'rtu_db_version', self::DB_VERSION );
+
+        // Arm the upgrade banner only if the user hasn't already dismissed it on a prior 3.0 install.
+        if ( false === get_option( 'rtu_30_notice_dismissed', false ) ) {
+            update_option( 'rtu_30_notice_dismissed', 0 );
+        }
+        set_transient( 'rtu_needs_flush', 1, HOUR_IN_SECONDS );
+
+        self::flush_cache();
+    }
 }

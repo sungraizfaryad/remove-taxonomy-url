@@ -86,3 +86,14 @@ function run_remove_taxonomy_url() {
 }
 
 run_remove_taxonomy_url();
+
+// Fallback migration trigger: catches in-place file upgrades that bypass the activation hook.
+add_action(
+	'plugins_loaded',
+	static function () {
+		if ( class_exists( 'RTU_Options' ) ) {
+			RTU_Options::maybe_migrate();
+		}
+	},
+	5
+);

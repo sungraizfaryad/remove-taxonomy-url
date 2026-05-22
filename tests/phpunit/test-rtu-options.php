@@ -95,4 +95,49 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $prop->setAccessible( true );
         $this->assertNotNull( $prop->getValue() );
     }
+
+    public function test_maybe_migrate_sets_db_version_on_fresh_install() {
+        delete_option( 'rtu_basics' );
+        delete_option( 'rtu_db_version' );
+        delete_option( 'rtu_30_notice_dismissed' );
+        RTU_Options::flush_cache();
+
+        RTU_Options::maybe_migrate();
+
+        $this->assertSame( '3.0', get_option( 'rtu_db_version' ) );
+        $this->assertSame( 0, (int) get_option( 'rtu_30_notice_dismissed', -1 ) );
+    }
+
+    public function test_maybe_migrate_preserves_existing_post_types() {
+        update_option( 'rtu_basics', [ 'rtu_post_types' => [ 'genre' ] ] );
+        delete_option( 'rtu_db_version' );
+        delete_option( 'rtu_30_notice_dismissed' );
+        RTU_Options::flush_cache();
+
+        RTU_Options::maybe_migrate();
+
+        $stored = get_option( 'rtu_basics' );
+        $this->assertSame( [ 'genre' ], $stored['rtu_post_types'] );
+        $this->assertSame( 0, $stored['rtu_enable_redirect'] );
+        $this->assertSame( 0, $stored['rtu_enable_pagination'] );
+        $this->assertSame( 0, $stored['rtu_enable_hierarchy'] );
+        $this->assertSame( 1, $stored['rtu_enable_collision'] );
+        $this->assertSame( '3.0', $stored['rtu_db_version'] );
+        $this->assertSame( '3.0', get_option( 'rtu_db_version' ) );
+    }
+
+    public function test_maybe_migrate_idempotent_when_already_on_3_0() {
+        update_option( 'rtu_basics', [
+            'rtu_post_types'      => [ 'genre' ],
+            'rtu_enable_redirect' => 1,
+            'rtu_db_version'      => '3.0',
+        ] );
+        update_option( 'rtu_db_version', '3.0' );
+        RTU_Options::flush_cache();
+
+        RTU_Options::maybe_migrate();
+
+        $stored = get_option( 'rtu_basics' );
+        $this->assertSame( 1, $stored['rtu_enable_redirect'] ); // Not reset.
+    }
 }
