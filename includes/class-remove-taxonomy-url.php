@@ -155,20 +155,16 @@ class Remove_Taxonomy_Url {
 
 		$plugin_admin = new Remove_Taxonomy_Url_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$options = get_option( 'rtu_basics' );
-
-		if ( isset( $options['rtu_post_types'] ) && ! empty( $options['rtu_post_types'] ) ) {
-			$this->loader->add_filter( 'term_link', $plugin_admin, 'build_tax_slugs', 10, 3 );
-			$this->loader->add_filter( 'request', $plugin_admin, 'remove_tax_slugs', 1, 1 );
-		}
+		$rewriter = new RTU_Url_Rewriter();
+		$rewriter->register_hooks( $this->loader );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$plugin_settings = new Remove_Taxonomy_Url_Settings();
 
+		$this->loader->add_action( 'admin_init', $plugin_settings, 'rtu_settings_init' );
 		$this->loader->add_action( 'admin_menu', $plugin_settings, 'settings_menu' );
-		$this->loader->add_action( 'admin_menu', $plugin_settings, 'rtu_settings_init' );
 	}
 
 	/**

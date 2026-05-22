@@ -52,4 +52,70 @@ class RTU_Url_Rewriter_Test extends WP_UnitTestCase {
 
         $this->assertSame( $url, $out );
     }
+
+    public function test_filter_request_remaps_single_level_term() {
+        $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'rock' ] );
+
+        $out = $this->rewriter->filter_request( [ 'name' => 'rock' ] );
+
+        $this->assertArrayNotHasKey( 'name', $out );
+        $this->assertSame( 'rock', $out['genre'] );
+    }
+
+    public function test_filter_request_walks_parent_chain_when_hierarchical_enabled() {
+        unregister_taxonomy( 'genre' );
+        register_taxonomy(
+            'genre',
+            'post',
+            [ 'public' => true, 'hierarchical' => true, 'rewrite' => [ 'slug' => 'genre' ] ]
+        );
+        $parent = $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'rock' ] );
+        $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'punk', 'parent' => $parent ] );
+
+        update_option( 'rtu_basics', [
+            'rtu_post_types'       => [ 'genre' ],
+            'rtu_enable_hierarchy' => 1,
+        ] );
+        RTU_Options::flush_cache();
+
+        $out = $this->rewriter->filter_request( [ 'name' => 'punk' ] );
+        $this->assertSame( 'rock/punk', $out['genre'] );
+    }
+
+    public function test_filter_request_skips_hierarchy_when_disabled() {
+        unregister_taxonomy( 'genre' );
+        register_taxonomy(
+            'genre',
+            'post',
+            [ 'public' => true, 'hierarchical' => true, 'rewrite' => [ 'slug' => 'genre' ] ]
+        );
+        $parent = $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'rock' ] );
+        $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'punk', 'parent' => $parent ] );
+
+        update_option( 'rtu_basics', [
+            'rtu_post_types'       => [ 'genre' ],
+            'rtu_enable_hierarchy' => 0,
+        ] );
+        RTU_Options::flush_cache();
+
+        $out = $this->rewriter->filter_request( [ 'name' => 'punk' ] );
+        $this->assertSame( 'punk', $out['genre'] );
+    }
+
+    public function test_filter_request_passes_through_unknown_slug() {
+        $out = $this->rewriter->filter_request( [ 'name' => 'no-such-term' ] );
+        $this->assertSame( [ 'name' => 'no-such-term' ], $out );
+    }
+
+    public function test_filter_request_terminates_on_root_term() {
+        update_option( 'rtu_basics', [
+            'rtu_post_types'       => [ 'genre' ],
+            'rtu_enable_hierarchy' => 1,
+        ] );
+        RTU_Options::flush_cache();
+
+        $this->factory->term->create( [ 'taxonomy' => 'genre', 'slug' => 'rock' ] );
+        $out = $this->rewriter->filter_request( [ 'name' => 'rock' ] );
+        $this->assertSame( 'rock', $out['genre'] );
+    }
 }

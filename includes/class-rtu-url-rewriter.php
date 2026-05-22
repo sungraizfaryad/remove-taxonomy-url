@@ -50,12 +50,84 @@ class RTU_Url_Rewriter {
 	}
 
 	/**
-	 * Stub — filled by Task 7.
+	 * Remap incoming `?name=slug` to `?taxonomy=slug` after term resolution.
 	 *
-	 * @param array $query_vars Query vars.
+	 * When `rtu_enable_hierarchy` is on, walks the parent chain and prepends parent
+	 * slugs so `/rock/punk/` resolves to the nested term. The walker is guarded
+	 * against orphan parents and circular references that would loop in the 1.x code.
+	 *
+	 * @param array $query_vars Incoming request query vars.
 	 * @return array
 	 */
 	public function filter_request( $query_vars ) {
+		$active = RTU_Options::get_active_taxonomies();
+		if ( empty( $active ) ) {
+			return $query_vars;
+		}
+
+		if ( isset( $query_vars['attachment'] ) ) {
+			$include_children = true;
+			$name             = $query_vars['attachment'];
+		} elseif ( isset( $query_vars['name'] ) ) {
+			$include_children = false;
+			$name             = $query_vars['name'];
+		} else {
+			return $query_vars;
+		}
+
+		$hierarchy_enabled = RTU_Options::is_feature_enabled( 'rtu_enable_hierarchy' );
+
+		foreach ( $active as $taxonomy ) {
+			$term = get_term_by( 'slug', $name, $taxonomy );
+			if ( ! $term || is_wp_error( $term ) ) {
+				continue;
+			}
+
+			if ( $include_children ) {
+				unset( $query_vars['attachment'] );
+			} else {
+				unset( $query_vars['name'] );
+			}
+
+			$resolved = $name;
+			if ( $hierarchy_enabled && ! empty( $term->parent ) ) {
+				$resolved = $this->prepend_parents( $term, $taxonomy );
+			}
+
+			$query_vars[ $taxonomy ] = $resolved;
+			return $query_vars;
+		}
+
 		return $query_vars;
+	}
+
+	/**
+	 * Walk the parent chain and prepend slugs. Guards against orphan and circular references.
+	 *
+	 * @param WP_Term $term     Starting term.
+	 * @param string  $taxonomy Taxonomy slug.
+	 * @return string Slash-joined slug path.
+	 */
+	private function prepend_parents( $term, $taxonomy ) {
+		$path    = $term->slug;
+		$parent  = (int) $term->parent;
+		$visited = [ (int) $term->term_id => true ];
+		$safety  = 0;
+
+		while ( $parent && $safety++ < 25 ) {
+			if ( isset( $visited[ $parent ] ) ) {
+				break;
+			}
+			$visited[ $parent ] = true;
+
+			$parent_term = get_term( $parent, $taxonomy );
+			if ( ! $parent_term || is_wp_error( $parent_term ) ) {
+				break;
+			}
+			$path   = $parent_term->slug . '/' . $path;
+			$parent = (int) $parent_term->parent;
+		}
+
+		return $path;
 	}
 }

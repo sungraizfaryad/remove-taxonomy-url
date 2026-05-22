@@ -77,59 +77,6 @@ class Remove_Taxonomy_Url_Admin {
 
 	}
 
-	public function remove_tax_slugs( $query_vars ) {
-
-		// Add the slugs of those taxonomies which you want to remove from url.
-		$options   = get_option( 'rtu_basics' );
-		$tax_slugs = $options['rtu_post_types'];
-
-		if ( isset( $query_vars['attachment'] ) ? $query_vars['attachment'] : null ) :
-			$include_children = true;
-			$name             = $query_vars['attachment'];
-		else :
-			if ( isset( $query_vars['name'] ) ? $query_vars['name'] : null ) {
-				$include_children = false;
-				$name             = $query_vars['name'];
-			}
-		endif;
-		if ( isset( $name ) ) :
-			foreach ( $tax_slugs as $slug ) {
-				$term = get_term_by( 'slug', $name, $slug );
-				if ( $term && ! is_wp_error( $term ) ) :
-					if ( $include_children ) {
-						unset( $query_vars['attachment'] );
-						$parent = $term->parent;
-						while ( $parent ) {
-							$parent_term = get_term( $parent, $slug );
-							$name        = $parent_term->slug . '/' . $name;
-							$parent      = $parent_term->parent;
-						}
-					} else {
-						unset( $query_vars['name'] );
-					}
-					$query_vars[ $slug ] = $name;
-				endif;
-			}
-		endif;
-
-		return $query_vars;
-	}
-
-	public function build_tax_slugs( $url, $term, $taxonomy ) {
-
-		// Add the slugs of those taxonomies which you want to remove from url.
-		$options        = get_option( 'rtu_basics' );
-		$taxonomy_slugs = $options['rtu_post_types'];
-		foreach ( $taxonomy_slugs as $taxonomy_slug ) {
-			if ( stripos( $url, $taxonomy_slug ) === true || $taxonomy == $taxonomy_slug ) {
-				$url = str_replace( '/' . $taxonomy_slug, '', $url );
-			}
-		}
-
-		return $url;
-	}
-
-
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
