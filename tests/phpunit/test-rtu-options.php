@@ -25,6 +25,13 @@ class RTU_Options_Test extends WP_UnitTestCase {
         unregister_taxonomy( 'genre' );
     }
 
+    public function test_get_active_taxonomies_excludes_builtin_taxonomies() {
+        // `category` is a built-in taxonomy; it must never be returned even if explicitly selected.
+        update_option( 'rtu_basics', [ 'rtu_post_types' => [ 'category', 'post_tag' ] ] );
+        RTU_Options::flush_cache();
+        $this->assertSame( [], RTU_Options::get_active_taxonomies() );
+    }
+
     public function test_is_feature_enabled_returns_bool() {
         update_option( 'rtu_basics', [ 'rtu_enable_redirect' => 1, 'rtu_enable_pagination' => 0 ] );
         RTU_Options::flush_cache();

@@ -56,9 +56,16 @@ final class RTU_Options {
     }
 
     /**
-     * Selected taxonomies that are still registered.
+     * Selected taxonomies that are still registered as custom (non-built-in) taxonomies.
      *
-     * @return string[]
+     * The `_builtin => false` filter is intentional: built-in WordPress taxonomies
+     * (`category`, `post_tag`, `nav_menu`, etc.) are out of scope for this plugin.
+     * The settings UI only offers non-built-in taxonomies in the multicheck, and
+     * Yoast SEO / Rank Math already provide "Strip Category Base" for `category`.
+     * Do not relax this filter without revisiting the settings UI, the conflict
+     * detector, and the redirect handler.
+     *
+     * @return string[] Sequential list of taxonomy slugs.
      */
     public static function get_active_taxonomies() {
         $selected = (array) self::get( 'rtu_post_types', [] );
