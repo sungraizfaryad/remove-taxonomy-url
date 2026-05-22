@@ -125,6 +125,7 @@ class Remove_Taxonomy_Url {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-redirect-handler.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-pagination-fix.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-conflict-detector.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rtu-admin-notices.php';
 
 		$this->loader = new Remove_Taxonomy_Url_Loader();
 
@@ -169,6 +170,9 @@ class Remove_Taxonomy_Url {
 
 		$detector = new RTU_Conflict_Detector();
 		$detector->register_hooks( $this->loader );
+
+		$notices = new RTU_Admin_Notices();
+		$notices->register_hooks( $this->loader );
 
 		$this->loader->add_action( 'admin_init', $this, 'maybe_flush_rewrite_rules', 99 );
 
