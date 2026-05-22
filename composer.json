@@ -1,0 +1,22 @@
+{
+    "name": "sungraizfaryad/remove-taxonomy-url",
+    "description": "Dev dependencies for Remove Taxonomy URL plugin",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^2.0",
+        "wp-phpunit/wp-phpunit": "^6.4",
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "platform": {
+            "php": "8.2.29"
+        }
+    }
+}
