@@ -182,7 +182,10 @@ class Remove_Taxonomy_Url_Settings_API {
 		}
 		// creates our settings in the options table.
 		foreach ( $this->settings_sections as $section ) {
-			register_setting( $section['id'], $section['id'], array( $this, 'sanitize_options' ) );
+			$sanitize_cb = ( 'rtu_basics' === $section['id'] && class_exists( 'RTU_Options' ) )
+				? array( 'RTU_Options', 'sanitize' )
+				: array( $this, 'sanitize_options' );
+			register_setting( $section['id'], $section['id'], $sanitize_cb );
 		}
 	}
 

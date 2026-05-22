@@ -65,10 +65,15 @@ class Remove_Taxonomy_Url_Settings {
 	 * @return array section fields
 	 */
 	private function get_settings_sections() {
+		$sections   = array();
 		$sections[] = array(
 			'id'    => 'rtu_basics',
-			'title' => esc_html__( 'Custom Taxonomies URL Settings', 'remove-taxonomy-url' ),
-			'desc'  => sprintf( esc_html__( '%1$s You need to save the Permalinks Twice after saving the settings otherwise you will face 404 error', 'remove-taxonomy-url' ), '<strong style="font-size: 1rem; color: red;">***IMPORTANT***</strong><br />' ),
+			'title' => esc_html__( 'Taxonomies & Redirects', 'remove-taxonomy-url' ),
+			'desc'  => sprintf(
+				/* translators: %s: emphasized IMPORTANT label */
+				esc_html__( '%s You need to save the Permalinks Twice after saving the settings otherwise you will face 404 error.', 'remove-taxonomy-url' ),
+				'<strong style="font-size: 1rem; color: red;">***IMPORTANT***</strong><br />'
+			),
 		);
 
 		return $sections;
@@ -81,7 +86,7 @@ class Remove_Taxonomy_Url_Settings {
 	 */
 	private function get_settings_fields() {
 
-		$all_post_types = get_taxonomies( array( '_builtin' => false ) );
+		$all_taxonomies = get_taxonomies( array( '_builtin' => false ) );
 
 		$settings_fields['rtu_basics'] = array(
 			array(
@@ -89,7 +94,32 @@ class Remove_Taxonomy_Url_Settings {
 				'label'   => esc_html__( 'Taxonomies List', 'remove-taxonomy-url' ),
 				'desc'    => esc_html__( 'Selected taxonomies slugs will be removed from URL.', 'remove-taxonomy-url' ),
 				'type'    => 'multicheck',
-				'options' => $all_post_types,
+				'options' => $all_taxonomies,
+			),
+			array(
+				'name'  => 'rtu_enable_redirect',
+				'label' => esc_html__( '301 redirect old URLs', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'Redirect /taxonomy/term/ to /term/ permanently.', 'remove-taxonomy-url' ),
+				'type'  => 'checkbox',
+			),
+			array(
+				'name'  => 'rtu_enable_pagination',
+				'label' => esc_html__( 'Pagination support', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'Fix /term/page/N/ routes after the base slug is removed.', 'remove-taxonomy-url' ),
+				'type'  => 'checkbox',
+			),
+			array(
+				'name'  => 'rtu_enable_hierarchy',
+				'label' => esc_html__( 'Hierarchical term URLs', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'Preserve parent paths for nested terms (e.g. /rock/punk/).', 'remove-taxonomy-url' ),
+				'type'  => 'checkbox',
+			),
+			array(
+				'name'    => 'rtu_enable_collision',
+				'label'   => esc_html__( 'Conflict detection on save', 'remove-taxonomy-url' ),
+				'desc'    => esc_html__( 'Warn (without blocking) when term slugs collide with pages, posts, or other terms.', 'remove-taxonomy-url' ),
+				'type'    => 'checkbox',
+				'default' => 1,
 			),
 		);
 
@@ -106,6 +136,12 @@ class Remove_Taxonomy_Url_Settings {
 		echo '<div id="rtu-settings-wrapper">';
 		$this->settings_api->show_forms();
 		echo '</div>';
+
+		$health_partial = plugin_dir_path( __FILE__ ) . 'rtu-health-check.php';
+		if ( file_exists( $health_partial ) ) {
+			include $health_partial;
+		}
+
 		echo '</div>';
 	}
 
