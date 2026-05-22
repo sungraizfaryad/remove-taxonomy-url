@@ -105,21 +105,32 @@ class Remove_Taxonomy_Url_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Remove_Taxonomy_Url_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Remove_Taxonomy_Url_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+	public function enqueue_scripts( $hook_suffix = '' ) {
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/remove-taxonomy-url-admin.js', array( 'jquery' ), $this->version, false );
+
+		if ( 'settings_page_rtu_settings_page' !== $hook_suffix ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'rtu-health-check',
+			plugin_dir_url( __FILE__ ) . 'js/rtu-health-check.js',
+			array(),
+			$this->version,
+			true
+		);
+		wp_localize_script(
+			'rtu-health-check',
+			'rtuHealthCheckL10n',
+			array(
+				'taxonomy'      => __( 'Taxonomy', 'remove-taxonomy-url' ),
+				'termSlug'      => __( 'Term slug', 'remove-taxonomy-url' ),
+				'conflictsWith' => __( 'Conflicts with', 'remove-taxonomy-url' ),
+				'noConflicts'   => __( 'No collisions found.', 'remove-taxonomy-url' ),
+				'failed'        => __( 'Audit failed.', 'remove-taxonomy-url' ),
+			)
+		);
 
 	}
 
