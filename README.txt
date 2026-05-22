@@ -3,7 +3,7 @@ Contributors: sungraizfaryad
 Donate link: https://sungraizfaryad.com/
 Tags: taxonomy, custom taxonomy, slug, permalink, redirect
 Requires at least: 5.0
-Tested up to: 6.7.2
+Tested up to: 7.0
 Stable tag: 3.0.0
 Requires PHP: 7.4
 License: GPLv2 or later
