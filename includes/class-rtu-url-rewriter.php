@@ -22,13 +22,17 @@ class RTU_Url_Rewriter {
 	/**
 	 * Register hooks via the plugin loader.
 	 *
+	 * Filters are bound unconditionally; their callbacks short-circuit when
+	 * `get_active_taxonomies()` is empty. We can't gate at registration time
+	 * because the plugin bootstrap runs during plugin file load, BEFORE `init`
+	 * fires — third-party CPTs/taxonomies (the only thing `get_taxonomies(['_builtin'=>false])`
+	 * sees) aren't registered yet, so a gate here would always early-return and
+	 * the filters would never bind for the request lifecycle.
+	 *
 	 * @param Remove_Taxonomy_Url_Loader $loader Plugin loader.
 	 * @return void
 	 */
 	public function register_hooks( $loader ) {
-		if ( empty( RTU_Options::get_active_taxonomies() ) ) {
-			return;
-		}
 		$loader->add_filter( 'term_link', $this, 'filter_term_link', 10, 3 );
 		$loader->add_filter( 'request', $this, 'filter_request', 1, 1 );
 	}

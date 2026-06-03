@@ -16,7 +16,7 @@ if ( ! defined( 'WPINC' ) ) {
 final class RTU_Options {
 
 	const OPTION_KEY = 'rtu_basics';
-	const DB_VERSION = '3.0';
+	const DB_VERSION = '3.0.1';
 
 	/**
 	 * Per-request cache of the option array.
@@ -91,9 +91,17 @@ final class RTU_Options {
 	}
 
 	/**
-	 * Sanitize callback for register_setting(). Whitelists taxonomies against currently
-	 * registered non-built-in taxonomies; coerces feature flags to 0/1; defaults the
-	 * collision detector ON when its checkbox is absent from the submission.
+	 * Sanitize callback for register_setting().
+	 *
+	 * Output format is tuned to round-trip cleanly through the WeDevs WP-Settings-API
+	 * render callbacks (callback_multicheck + callback_checkbox):
+	 *   - rtu_post_types: keyed slug=>slug array so callback_multicheck's
+	 *     `isset($value[$key])` check finds the selection.
+	 *   - rtu_enable_* feature flags: stored as the literal string 'on' (enabled) or
+	 *     '' (disabled), matching what callback_checkbox emits as the checkbox value.
+	 *     The hidden companion field of WeDevs's checkbox posts the literal string
+	 *     'off' when unchecked, so a `!empty()` check would wrongly count it as
+	 *     enabled; only an explicit `'on' ===` comparison is correct.
 	 *
 	 * @param mixed $input Raw input from the settings form.
 	 * @return array
@@ -106,15 +114,17 @@ final class RTU_Options {
 			? $input['rtu_post_types']
 			: array();
 
+		$filtered = array_values( array_intersect( $selected, $registered ) );
+
 		$clean                          = array();
-		$clean['rtu_post_types']        = array_values( array_intersect( $selected, $registered ) );
-		$clean['rtu_enable_redirect']   = ! empty( $input['rtu_enable_redirect'] ) ? 1 : 0;
-		$clean['rtu_enable_pagination'] = ! empty( $input['rtu_enable_pagination'] ) ? 1 : 0;
-		$clean['rtu_enable_hierarchy']  = ! empty( $input['rtu_enable_hierarchy'] ) ? 1 : 0;
-		// Collision detection defaults ON: only treated as off when the key is present and explicitly empty/zero.
+		$clean['rtu_post_types']        = empty( $filtered ) ? array() : array_combine( $filtered, $filtered );
+		$clean['rtu_enable_redirect']   = ( isset( $input['rtu_enable_redirect'] ) && 'on' === $input['rtu_enable_redirect'] ) ? 'on' : '';
+		$clean['rtu_enable_pagination'] = ( isset( $input['rtu_enable_pagination'] ) && 'on' === $input['rtu_enable_pagination'] ) ? 'on' : '';
+		$clean['rtu_enable_hierarchy']  = ( isset( $input['rtu_enable_hierarchy'] ) && 'on' === $input['rtu_enable_hierarchy'] ) ? 'on' : '';
+		// Collision detection defaults ON: keep enabled unless the field is submitted with anything other than 'on'.
 		$clean['rtu_enable_collision'] = array_key_exists( 'rtu_enable_collision', $input )
-			? ( ! empty( $input['rtu_enable_collision'] ) ? 1 : 0 )
-			: 1;
+			? ( 'on' === $input['rtu_enable_collision'] ? 'on' : '' )
+			: 'on';
 		$clean['rtu_db_version']       = self::DB_VERSION;
 
 		self::flush_cache();
@@ -158,15 +168,29 @@ final class RTU_Options {
 
 		$defaults = array(
 			'rtu_post_types'        => array(),
-			'rtu_enable_redirect'   => 0,
-			'rtu_enable_pagination' => 0,
-			'rtu_enable_hierarchy'  => 0,
-			'rtu_enable_collision'  => 1,
+			'rtu_enable_redirect'   => '',
+			'rtu_enable_pagination' => '',
+			'rtu_enable_hierarchy'  => '',
+			'rtu_enable_collision'  => 'on',
 			'rtu_db_version'        => self::DB_VERSION,
 		);
 
 		$merged                   = array_merge( $defaults, $stored );
 		$merged['rtu_db_version'] = self::DB_VERSION;
+
+		// 3.0.1 normalization: rewrite legacy 3.0.0 storage (sequential rtu_post_types and int 0/1 feature flags)
+		// into the formats the WeDevs render callbacks expect (slug=>slug keyed array and 'on'/'' strings).
+		// array_unique guards against array_combine() throwing a ValueError on duplicate slugs from
+		// corrupted data or non-sanitize writers (WP-CLI, REST). The truthy test below accepts boolean
+		// true as well as int/numeric 1 and the string 'on', so a flag written as `true` is not silently lost.
+		if ( isset( $merged['rtu_post_types'] ) && is_array( $merged['rtu_post_types'] ) && ! empty( $merged['rtu_post_types'] ) ) {
+			$slugs                    = array_values( array_unique( $merged['rtu_post_types'] ) );
+			$merged['rtu_post_types'] = array_combine( $slugs, $slugs );
+		}
+		foreach ( array( 'rtu_enable_redirect', 'rtu_enable_pagination', 'rtu_enable_hierarchy', 'rtu_enable_collision' ) as $flag ) {
+			$val             = isset( $merged[ $flag ] ) ? $merged[ $flag ] : '';
+			$merged[ $flag ] = ( 'on' === $val || true === $val || ( is_numeric( $val ) && 1 === (int) $val ) ) ? 'on' : '';
+		}
 
 		update_option( self::OPTION_KEY, $merged );
 		update_option( 'rtu_db_version', self::DB_VERSION );

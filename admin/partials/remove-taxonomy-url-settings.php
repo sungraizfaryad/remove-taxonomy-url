@@ -118,7 +118,7 @@ class Remove_Taxonomy_Url_Settings {
 				'label'   => esc_html__( 'Conflict detection on save', 'remove-taxonomy-url' ),
 				'desc'    => esc_html__( 'Warn (without blocking) when term slugs collide with pages, posts, or other terms.', 'remove-taxonomy-url' ),
 				'type'    => 'checkbox',
-				'default' => 1,
+				'default' => 'on',
 			),
 		);
 

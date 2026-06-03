@@ -4,7 +4,7 @@ Donate link: https://sungraizfaryad.com/
 Tags: taxonomy, custom taxonomy, slug, permalink, redirect
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,12 @@ No. No analytics, no remote calls, no tracking.
 
 
 == Changelog ==
+= 3.0.1 =
+* Fix: settings checkboxes no longer reset to unchecked after Save. Sanitize now stores values in the format expected by the rendering callbacks (slug=>slug array for the taxonomy multicheck; 'on'/'' string for feature flags).
+* Fix: hidden companion checkbox field's literal 'off' string is no longer treated as "enabled" by the sanitize callback. Feature flags now only enable when explicitly 'on'.
+* Migration: existing 3.0.0 installs are normalized from int 0/1 + sequential post_types into the new format automatically on first 3.0.1 load — no user action required.
+* Tested up to: 7.0.
+
 = 3.0.0 =
 * New: 301 redirect from old /taxonomy/term/ to new /term/ (optional, off by default).
 * New: pagination support for taxonomies with their base slug removed.
