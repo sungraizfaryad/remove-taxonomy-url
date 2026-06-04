@@ -4,7 +4,7 @@ Donate link: https://sungraizfaryad.com/
 Tags: taxonomy, custom taxonomy, slug, permalink, redirect
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 3.0.1
+Stable tag: 3.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,14 @@ No. No analytics, no remote calls, no tracking.
 
 
 == Changelog ==
+= 3.1.0 =
+* New: Hierarchical term URLs now actually resolve. Child terms use their full parent path (/parent/child/) at any depth, backed by explicit rewrite rules; the old flat /child/ URL 301-redirects to the nested one. Previously, turning this option on made child terms 404.
+* New: Health Check "Test all term URLs" — requests a sample of your term URLs over a loopback and reports which resolve (200) or fail (404). Catches broken term URLs from any cause (hierarchy, stale permalinks, collisions). Falls back to an internal check if loopback is blocked.
+* New: Health Check shows current hierarchy status (on/off, child-URL shape, child-term count).
+* Improved: every setting now has a plain-language description explaining what it does and when to use it.
+* Improved: settings page shows the plugin version and when permalinks were last flushed; saving settings re-flushes automatically.
+* Improved: enabling Hierarchical term URLs shows how many child-term URLs will change.
+
 = 3.0.1 =
 * Fix: settings checkboxes no longer reset to unchecked after Save. Sanitize now stores values in the format expected by the rendering callbacks (slug=>slug array for the taxonomy multicheck; 'on'/'' string for feature flags).
 * Fix: hidden companion checkbox field's literal 'off' string is no longer treated as "enabled" by the sanitize callback. Feature flags now only enable when explicitly 'on'.

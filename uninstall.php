@@ -35,6 +35,7 @@ global $wpdb;
 delete_option( 'rtu_basics' );
 delete_option( 'rtu_db_version' );
 delete_option( 'rtu_30_notice_dismissed' );
+delete_option( 'rtu_last_flushed' );
 
 // Plugin transients (currently just rtu_needs_flush).
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary cleanup on uninstall; no caching API for bulk LIKE deletes.
