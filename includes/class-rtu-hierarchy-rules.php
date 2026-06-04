@@ -130,4 +130,48 @@ class RTU_Hierarchy_Rules {
 	public function get_skipped_taxonomies() {
 		return $this->skipped;
 	}
+
+	/**
+	 * Register hooks via the plugin loader.
+	 *
+	 * @param Remove_Taxonomy_Url_Loader $loader Plugin loader.
+	 * @return void
+	 */
+	public function register_hooks( $loader ) {
+		$loader->add_filter( 'rewrite_rules_array', $this, 'inject_rules', 9, 1 );
+		$loader->add_action( 'created_term', $this, 'arm_flush', 10, 3 );
+		$loader->add_action( 'edited_term', $this, 'arm_flush', 10, 3 );
+		$loader->add_action( 'delete_term', $this, 'arm_flush', 10, 3 );
+	}
+
+	/**
+	 * Merge the generated nested rules ahead of the existing rules so they match first.
+	 *
+	 * @param array $rules Current rewrite rules.
+	 * @return array
+	 */
+	public function inject_rules( $rules ) {
+		if ( ! is_array( $rules ) ) {
+			$rules = array();
+		}
+		$generated = $this->generate_rules();
+		// Generated specific rules first, then the existing set (union keeps generated keys).
+		return $generated + $rules;
+	}
+
+	/**
+	 * Arm a one-time rewrite flush when a term in an active taxonomy changes.
+	 *
+	 * @param int    $term_id  Term ID (unused).
+	 * @param int    $tt_id    Term taxonomy ID (unused).
+	 * @param string $taxonomy Taxonomy slug.
+	 * @return void
+	 */
+	public function arm_flush( $term_id, $tt_id = 0, $taxonomy = '' ) {
+		unset( $term_id, $tt_id );
+		if ( '' !== $taxonomy && ! in_array( $taxonomy, RTU_Options::get_active_taxonomies(), true ) ) {
+			return;
+		}
+		set_transient( 'rtu_needs_flush', 1, HOUR_IN_SECONDS );
+	}
 }

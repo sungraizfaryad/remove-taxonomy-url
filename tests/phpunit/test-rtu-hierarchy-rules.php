@@ -81,4 +81,40 @@ class RTU_Hierarchy_Rules_Test extends WP_UnitTestCase {
 		$rules->generate_rules();
 		$this->assertSame( array(), $rules->get_skipped_taxonomies() );
 	}
+
+	public function test_inject_rules_prepends_generated_rules() {
+		$pt = self::factory()->term->create( array( 'taxonomy' => $this->tax, 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => $this->tax, 'slug' => 'lisbon', 'parent' => $pt ) );
+		$this->enable_hierarchy_for( $this->tax );
+
+		$existing = array( '^existing/?$' => 'index.php?p=1' );
+		$merged   = ( new RTU_Hierarchy_Rules() )->inject_rules( $existing );
+
+		$this->assertArrayHasKey( '^portugal/lisbon/?$', $merged );
+		$this->assertArrayHasKey( '^existing/?$', $merged );
+		$keys = array_keys( $merged );
+		$this->assertLessThan(
+			array_search( '^existing/?$', $keys, true ),
+			array_search( '^portugal/lisbon/?$', $keys, true )
+		);
+	}
+
+	public function test_inject_rules_handles_non_array() {
+		$this->enable_hierarchy_for( $this->tax );
+		$this->assertIsArray( ( new RTU_Hierarchy_Rules() )->inject_rules( 'not-an-array' ) );
+	}
+
+	public function test_arm_flush_sets_transient_for_active_taxonomy() {
+		$this->enable_hierarchy_for( $this->tax );
+		delete_transient( 'rtu_needs_flush' );
+		( new RTU_Hierarchy_Rules() )->arm_flush( 0, 0, $this->tax );
+		$this->assertSame( 1, (int) get_transient( 'rtu_needs_flush' ) );
+	}
+
+	public function test_arm_flush_ignores_inactive_taxonomy() {
+		$this->enable_hierarchy_for( $this->tax );
+		delete_transient( 'rtu_needs_flush' );
+		( new RTU_Hierarchy_Rules() )->arm_flush( 0, 0, 'some_other_tax' );
+		$this->assertFalse( get_transient( 'rtu_needs_flush' ) );
+	}
 }
