@@ -112,6 +112,33 @@ class RTU_Conflict_Detector_Test extends WP_UnitTestCase {
 		unregister_taxonomy( 'geo' );
 	}
 
+	public function test_warn_on_save_uses_new_value_for_collision_gate() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon' ) );
+		// A published page that collides with the term slug.
+		self::factory()->post->create( array( 'post_type' => 'page', 'post_name' => 'lisbon', 'post_status' => 'publish' ) );
+
+		// OLD state: collision detection OFF.
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_collision' => '',
+		) );
+		RTU_Options::flush_cache();
+		global $wp_settings_errors;
+		$wp_settings_errors = array();
+
+		// NEW state turns collision detection ON, same taxonomy (which has the colliding slug).
+		$new = array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_collision' => 'on',
+		);
+		( new RTU_Conflict_Detector() )->warn_on_save( $new, get_option( 'rtu_basics' ) );
+
+		$codes = wp_list_pluck( get_settings_errors( 'rtu_basics' ), 'code' );
+		$this->assertContains( 'rtu_collision', $codes );
+		unregister_taxonomy( 'geo' );
+	}
+
 	public function test_hierarchy_status_reports_state() {
 		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
 		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );

@@ -134,23 +134,27 @@ class RTU_Conflict_Detector {
 	 * @return mixed Unmodified $new_value.
 	 */
 	public function warn_on_save( $new_value, $old_value ) {
-		if ( RTU_Options::is_feature_enabled( 'rtu_enable_collision' ) ) {
-			$taxonomies = ( is_array( $new_value ) && isset( $new_value['rtu_post_types'] ) )
-				? (array) $new_value['rtu_post_types']
-				: array();
-			$collisions = $this->find_collisions( $taxonomies );
-			if ( ! empty( $collisions ) ) {
-				add_settings_error(
-					'rtu_basics',
-					'rtu_collision',
-					sprintf(
-						/* translators: %d: number of colliding term slugs */
-						esc_html__( 'Warning: %d term slug(s) conflict with existing pages/posts/terms. Visit the Health Check tab.', 'remove-taxonomy-url' ),
-						count( $collisions )
-					),
-					'warning'
-				);
-			}
+		$collision_enabled = ( is_array( $new_value ) && array_key_exists( 'rtu_enable_collision', $new_value ) )
+			? ( 'on' === $new_value['rtu_enable_collision'] )
+			: true;
+		if ( ! $collision_enabled ) {
+			return $new_value;
+		}
+		$taxonomies = ( is_array( $new_value ) && isset( $new_value['rtu_post_types'] ) )
+			? (array) $new_value['rtu_post_types']
+			: array();
+		$collisions = $this->find_collisions( $taxonomies );
+		if ( ! empty( $collisions ) ) {
+			add_settings_error(
+				'rtu_basics',
+				'rtu_collision',
+				sprintf(
+					/* translators: %d: number of colliding term slugs */
+					esc_html__( 'Warning: %d term slug(s) conflict with existing pages/posts/terms. Visit the Health Check tab.', 'remove-taxonomy-url' ),
+					count( $collisions )
+				),
+				'warning'
+			);
 		}
 
 		$was_on = ( is_array( $old_value ) && isset( $old_value['rtu_enable_hierarchy'] ) && 'on' === $old_value['rtu_enable_hierarchy'] );
