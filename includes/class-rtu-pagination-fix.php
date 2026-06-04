@@ -40,9 +40,12 @@ class RTU_Pagination_Fix {
 		if ( ! is_array( $rules ) ) {
 			$rules = array();
 		}
-		foreach ( RTU_Options::get_active_taxonomies() as $slug ) {
-			$rules['^([^/]+)/page/?([0-9]{1,})/?$'] = 'index.php?' . $slug . '=$matches[1]&paged=$matches[2]';
-			$rules['^([^/]+)/?$']                   = 'index.php?' . $slug . '=$matches[1]';
+		// Route through `name` so RTU_Url_Rewriter::filter_request resolves the correct
+		// taxonomy among ALL active ones. A per-taxonomy key would collide (identical regex)
+		// and only the last taxonomy would survive. filter_request preserves `paged`.
+		if ( ! empty( RTU_Options::get_active_taxonomies() ) ) {
+			$rules['^([^/]+)/page/?([0-9]{1,})/?$'] = 'index.php?name=$matches[1]&paged=$matches[2]';
+			$rules['^([^/]+)/?$']                   = 'index.php?name=$matches[1]';
 		}
 		return $rules;
 	}

@@ -25,11 +25,11 @@ class RTU_Pagination_Fix_Test extends WP_UnitTestCase {
 
         $this->assertArrayHasKey( 'existing/?$', $merged );
         $this->assertSame(
-            'index.php?genre=$matches[1]&paged=$matches[2]',
+            'index.php?name=$matches[1]&paged=$matches[2]',
             $merged['^([^/]+)/page/?([0-9]{1,})/?$']
         );
         $this->assertSame(
-            'index.php?genre=$matches[1]',
+            'index.php?name=$matches[1]',
             $merged['^([^/]+)/?$']
         );
     }
@@ -54,5 +54,24 @@ class RTU_Pagination_Fix_Test extends WP_UnitTestCase {
 
         $this->assertIsArray( $merged );
         $this->assertArrayHasKey( '^([^/]+)/?$', $merged );
+    }
+
+    public function test_inject_rules_serves_multiple_taxonomies_without_collision() {
+        register_taxonomy( 'location', 'post', [ 'public' => true, 'rewrite' => [ 'slug' => 'location' ] ] );
+        update_option( 'rtu_basics', [
+            'rtu_post_types'        => [ 'genre' => 'genre', 'location' => 'location' ],
+            'rtu_enable_pagination' => 'on',
+        ] );
+        RTU_Options::flush_cache();
+
+        $merged = ( new RTU_Pagination_Fix() )->inject_rules( array() );
+
+        // One taxonomy-agnostic rule routed via `name`, serving BOTH taxonomies (no overwrite, no hardcoded slug).
+        $this->assertSame( 'index.php?name=$matches[1]&paged=$matches[2]', $merged['^([^/]+)/page/?([0-9]{1,})/?$'] );
+        $this->assertSame( 'index.php?name=$matches[1]', $merged['^([^/]+)/?$'] );
+        // Must NOT hardcode any single taxonomy slug.
+        $this->assertStringNotContainsString( 'genre=', $merged['^([^/]+)/page/?([0-9]{1,})/?$'] );
+        $this->assertStringNotContainsString( 'location=', $merged['^([^/]+)/page/?([0-9]{1,})/?$'] );
+        unregister_taxonomy( 'location' );
     }
 }
