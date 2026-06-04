@@ -3,6 +3,8 @@ class RTU_Conflict_Detector_Test extends WP_UnitTestCase {
 
     public function setUp(): void {
         parent::setUp();
+        global $wp_settings_errors;
+        $wp_settings_errors = array();
         register_taxonomy( 'genre', 'post', [ 'public' => true ] );
         update_option( 'rtu_basics', [
             'rtu_post_types'       => [ 'genre' ],
@@ -16,8 +18,13 @@ class RTU_Conflict_Detector_Test extends WP_UnitTestCase {
         if ( taxonomy_exists( 'mood' ) ) {
             unregister_taxonomy( 'mood' );
         }
+        if ( taxonomy_exists( 'geo' ) ) {
+            unregister_taxonomy( 'geo' );
+        }
         delete_option( 'rtu_basics' );
         RTU_Options::flush_cache();
+        global $wp_settings_errors;
+        $wp_settings_errors = array();
         parent::tearDown();
     }
 
@@ -63,4 +70,62 @@ class RTU_Conflict_Detector_Test extends WP_UnitTestCase {
         $detector = new RTU_Conflict_Detector();
         $this->assertSame( [], $detector->find_collisions( [ 123, null, false ] ) );
     }
+
+	public function test_warn_on_save_adds_hierarchy_notice_when_enabling() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => '',
+		) );
+		RTU_Options::flush_cache();
+
+		$detector = new RTU_Conflict_Detector();
+		$new      = array( 'rtu_post_types' => array( 'geo' => 'geo' ), 'rtu_enable_hierarchy' => 'on' );
+		$detector->warn_on_save( $new, get_option( 'rtu_basics' ) );
+
+		$codes = wp_list_pluck( get_settings_errors( 'rtu_basics' ), 'code' );
+		$this->assertContains( 'rtu_hierarchy_enabled', $codes );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_warn_on_save_no_hierarchy_notice_when_already_on() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+		// Clear any errors from the automatic pre_update_option filter firing during update_option() above.
+		global $wp_settings_errors;
+		$wp_settings_errors = array();
+
+		$detector = new RTU_Conflict_Detector();
+		$new      = array( 'rtu_post_types' => array( 'geo' => 'geo' ), 'rtu_enable_hierarchy' => 'on' );
+		$detector->warn_on_save( $new, get_option( 'rtu_basics' ) );
+
+		$codes = wp_list_pluck( get_settings_errors( 'rtu_basics' ), 'code' );
+		$this->assertNotContains( 'rtu_hierarchy_enabled', $codes );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_hierarchy_status_reports_state() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$status = ( new RTU_Conflict_Detector() )->hierarchy_status();
+		$this->assertTrue( $status['enabled'] );
+		$this->assertSame( 1, $status['child_terms'] );
+		$this->assertSame( 'nested', $status['child_url_shape'] );
+		unregister_taxonomy( 'geo' );
+	}
 }
