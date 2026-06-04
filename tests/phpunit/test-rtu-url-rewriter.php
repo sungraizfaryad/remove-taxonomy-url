@@ -118,4 +118,38 @@ class RTU_Url_Rewriter_Test extends WP_UnitTestCase {
         $out = $this->rewriter->filter_request( [ 'name' => 'rock' ] );
         $this->assertSame( 'rock', $out['genre'] );
     }
+
+	public function test_term_link_prepends_ancestors_when_hierarchy_on() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true, 'rewrite' => array( 'slug' => 'geo' ) ) );
+		$pt    = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		$child = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$rewriter = new RTU_Url_Rewriter();
+		$link     = $rewriter->filter_term_link( 'https://example.com/geo/lisbon/', get_term( $child, 'geo' ), 'geo' );
+
+		$this->assertSame( 'https://example.com/portugal/lisbon/', $link );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_term_link_flat_when_hierarchy_off() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true, 'rewrite' => array( 'slug' => 'geo' ) ) );
+		$pt    = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		$child = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => '',
+		) );
+		RTU_Options::flush_cache();
+
+		$rewriter = new RTU_Url_Rewriter();
+		$link     = $rewriter->filter_term_link( 'https://example.com/geo/lisbon/', get_term( $child, 'geo' ), 'geo' );
+
+		$this->assertSame( 'https://example.com/lisbon/', $link );
+		unregister_taxonomy( 'geo' );
+	}
 }

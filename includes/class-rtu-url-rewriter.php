@@ -53,8 +53,24 @@ class RTU_Url_Rewriter {
 		if ( ! in_array( $taxonomy, $active, true ) ) {
 			return $url;
 		}
-		$pattern = '#/' . preg_quote( $taxonomy, '#' ) . '(?=/|$)#';
-		return preg_replace( $pattern, '', $url, 1 );
+		// Strip the base taxonomy slug (word-boundary so a parent path is not over-matched).
+		$stripped = preg_replace( '#/' . preg_quote( $taxonomy, '#' ) . '(?=/|$)#', '', $url, 1 );
+
+		if ( RTU_Options::is_feature_enabled( 'rtu_enable_hierarchy' )
+			&& isset( $term->parent ) && 0 !== (int) $term->parent ) {
+			$path = RTU_Hierarchy_Rules::term_path( $term, $taxonomy );
+			if ( '' !== $path && false !== strpos( $path, '/' ) ) {
+				// Replace the trailing "/<own-slug>/" (or "/<own-slug>") with the full ancestor path.
+				$stripped = preg_replace(
+					'#/' . preg_quote( $term->slug, '#' ) . '(/|$)#',
+					'/' . $path . '$1',
+					$stripped,
+					1
+				);
+			}
+		}
+
+		return $stripped;
 	}
 
 	/**
