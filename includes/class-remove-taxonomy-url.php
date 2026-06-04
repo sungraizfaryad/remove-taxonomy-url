@@ -31,6 +31,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * The core plugin class.
+ *
+ * @since      1.0.0
+ * @package    Remove_Taxonomy_Url
+ * @subpackage Remove_Taxonomy_Url/includes
+ * @author     Sungraiz Faryad <sungraiz@gmail.com>
+ */
 class Remove_Taxonomy_Url {
 
 	/**
@@ -176,6 +184,19 @@ class Remove_Taxonomy_Url {
 		$notices = new RTU_Admin_Notices();
 		$notices->register_hooks( $this->loader );
 
+		$hierarchy = new RTU_Hierarchy_Rules();
+		$hierarchy->register_hooks( $this->loader );
+
+		// Re-flush rewrite rules once after the rtu_basics option changes (taxonomy or
+		// hierarchy toggle), so new nested rules take effect without a manual permalink save.
+		$this->loader->add_action(
+			'update_option_rtu_basics',
+			$this,
+			'arm_rewrite_flush_on_settings_change',
+			10,
+			0
+		);
+
 		$this->loader->add_action( 'admin_init', $this, 'maybe_flush_rewrite_rules', 99 );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
@@ -188,6 +209,15 @@ class Remove_Taxonomy_Url {
 	}
 
 	/**
+	 * Arm a one-time rewrite flush after the plugin's settings change.
+	 *
+	 * @return void
+	 */
+	public function arm_rewrite_flush_on_settings_change() {
+		set_transient( 'rtu_needs_flush', 1, HOUR_IN_SECONDS );
+	}
+
+	/**
 	 * Flush rewrite rules once after a migration or settings toggle armed the
 	 * `rtu_needs_flush` transient. Cleared after the flush so it only runs once.
 	 *
@@ -197,6 +227,9 @@ class Remove_Taxonomy_Url {
 		if ( get_transient( 'rtu_needs_flush' ) ) {
 			flush_rewrite_rules( false );
 			delete_transient( 'rtu_needs_flush' );
+			if ( class_exists( 'RTU_Options' ) ) {
+				RTU_Options::set_last_flushed( time() );
+			}
 		}
 	}
 
