@@ -91,32 +91,32 @@ class Remove_Taxonomy_Url_Settings {
 			array(
 				'name'    => 'rtu_post_types',
 				'label'   => esc_html__( 'Taxonomies List', 'remove-taxonomy-url' ),
-				'desc'    => esc_html__( 'Selected taxonomies slugs will be removed from URL.', 'remove-taxonomy-url' ),
+				'desc'    => esc_html__( "Tick the taxonomies whose base slug you want removed. Example: with 'Genre' ticked, /genre/rock/ becomes /rock/. Only tick taxonomies you actually want shortened — each one changes its public URLs site-wide.", 'remove-taxonomy-url' ),
 				'type'    => 'multicheck',
 				'options' => $all_taxonomies,
 			),
 			array(
 				'name'  => 'rtu_enable_redirect',
 				'label' => esc_html__( '301 redirect old URLs', 'remove-taxonomy-url' ),
-				'desc'  => esc_html__( 'Redirect /taxonomy/term/ to /term/ permanently.', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'When ON, the old /genre/rock/ address permanently (301) redirects to the new /rock/. Turn this ON for SEO. Only turn ON once the short URLs are confirmed working — if a short URL is broken, this redirects visitors straight into a 404.', 'remove-taxonomy-url' ),
 				'type'  => 'checkbox',
 			),
 			array(
 				'name'  => 'rtu_enable_pagination',
 				'label' => esc_html__( 'Pagination support', 'remove-taxonomy-url' ),
-				'desc'  => esc_html__( 'Fix /term/page/N/ routes after the base slug is removed.', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'Turn ON if your taxonomy archives split across multiple pages (page 2, 3…). Keeps /rock/page/2/ working after the base slug is removed. Safe to leave ON.', 'remove-taxonomy-url' ),
 				'type'  => 'checkbox',
 			),
 			array(
 				'name'  => 'rtu_enable_hierarchy',
 				'label' => esc_html__( 'Hierarchical term URLs', 'remove-taxonomy-url' ),
-				'desc'  => esc_html__( 'Preserve parent paths for nested terms (e.g. /rock/punk/).', 'remove-taxonomy-url' ),
+				'desc'  => esc_html__( 'Controls how CHILD terms look. OFF: a child term uses a flat URL — /punk/. ON: a child term uses its full parent path — /rock/punk/ — and the flat /punk/ permanently redirects to it. Top-level terms are unaffected either way. Turning this ON changes child-term URLs site-wide; existing flat links keep working via redirect.', 'remove-taxonomy-url' ),
 				'type'  => 'checkbox',
 			),
 			array(
 				'name'    => 'rtu_enable_collision',
 				'label'   => esc_html__( 'Conflict detection on save', 'remove-taxonomy-url' ),
-				'desc'    => esc_html__( 'Warn (without blocking) when term slugs collide with pages, posts, or other terms.', 'remove-taxonomy-url' ),
+				'desc'    => esc_html__( "Leave ON. When you save, it checks whether a shortened term URL (e.g. /rock/) clashes with an existing page, post, or another term with the same slug, and warns you. It won't block the save. Use the Health Check tab to scan everything at once.", 'remove-taxonomy-url' ),
 				'type'    => 'checkbox',
 				'default' => 'on',
 			),
@@ -131,6 +131,21 @@ class Remove_Taxonomy_Url_Settings {
 	 */
 	public function rtu_settings_page() {
 		echo '<div class="wrap">';
+
+		$rtu_version   = defined( 'REMOVE_TAXONOMY_URL_VERSION' ) ? REMOVE_TAXONOMY_URL_VERSION : '';
+		$rtu_flushed   = class_exists( 'RTU_Options' ) ? RTU_Options::get_last_flushed() : 0;
+		$rtu_flushed_h = $rtu_flushed ? sprintf(
+			/* translators: %s: human-readable time difference, e.g. "5 mins" */
+			esc_html__( '%s ago', 'remove-taxonomy-url' ),
+			human_time_diff( $rtu_flushed, time() )
+		) : esc_html__( 'never', 'remove-taxonomy-url' );
+
+		echo '<p style="margin:.5em 0;color:#50575e;">';
+		echo esc_html__( 'After changing any setting here, the plugin re-flushes your permalinks automatically. If a URL still shows 404, go to Settings → Permalinks and click Save once.', 'remove-taxonomy-url' );
+		echo '<br><strong>' . esc_html__( 'Version:', 'remove-taxonomy-url' ) . '</strong> ' . esc_html( $rtu_version )
+			. ' &nbsp;|&nbsp; <strong>' . esc_html__( 'Last flushed:', 'remove-taxonomy-url' ) . '</strong> ' . esc_html( $rtu_flushed_h );
+		echo '</p>';
+
 		$this->settings_api->show_navigation();
 		echo '<div id="rtu-settings-wrapper">';
 		$this->settings_api->show_forms();
