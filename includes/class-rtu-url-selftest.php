@@ -89,4 +89,84 @@ class RTU_Url_Selftest {
 		}
 		return $sample;
 	}
+
+	/**
+	 * Verify a single term's public URL resolves.
+	 *
+	 * Primary: HTTP loopback to the term's stripped permalink (200 = pass, else fail).
+	 * Fallback (loopback errored/blocked): internal check that the term exists.
+	 *
+	 * @param array $row Sample row from sample_terms().
+	 * @return array array( 'taxonomy', 'slug', 'url', 'status', 'pass', 'mode' )
+	 */
+	public function check_term( $row ) {
+		$term = get_term( (int) $row['term_id'], $row['taxonomy'] );
+		$url  = ( $term && ! is_wp_error( $term ) ) ? get_term_link( $term, $row['taxonomy'] ) : '';
+		$url  = is_wp_error( $url ) ? '' : $url;
+
+		$result = array(
+			'taxonomy' => $row['taxonomy'],
+			'slug'     => $row['slug'],
+			'url'      => $url,
+			'status'   => 0,
+			'pass'     => false,
+			'mode'     => 'loopback',
+		);
+
+		if ( '' === $url ) {
+			$result['mode'] = 'internal';
+			$result['pass'] = false;
+			return $result;
+		}
+
+		$response = wp_remote_get( // phpcs:ignore WordPress.WP.AlternativeFunctions.wp_remote_get_wp_remote_get -- loopback self-test, admin-triggered
+			$url,
+			array(
+				'timeout'     => 5,
+				'sslverify'   => false,
+				'redirection' => 0,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$result['mode'] = 'internal';
+			$result['pass'] = ( $term && ! is_wp_error( $term ) );
+			return $result;
+		}
+
+		$code             = (int) wp_remote_retrieve_response_code( $response );
+		$result['status'] = $code;
+		$result['pass']   = ( 200 === $code );
+		return $result;
+	}
+
+	/**
+	 * Run the self-test across active taxonomies.
+	 *
+	 * @param int $limit Max terms to test.
+	 * @return array array( 'rows' => array[], 'tested' => int, 'total' => int )
+	 */
+	public function run( $limit = 25 ) {
+		$active = RTU_Options::get_active_taxonomies();
+		$total  = 0;
+		foreach ( $active as $taxonomy ) {
+			$count  = wp_count_terms(
+				array(
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => false,
+				)
+			);
+			$total += is_wp_error( $count ) ? 0 : (int) $count;
+		}
+		$sample = $this->sample_terms( $active, $limit );
+		$rows   = array();
+		foreach ( $sample as $row ) {
+			$rows[] = $this->check_term( $row );
+		}
+		return array(
+			'rows'   => $rows,
+			'tested' => count( $rows ),
+			'total'  => $total,
+		);
+	}
 }
