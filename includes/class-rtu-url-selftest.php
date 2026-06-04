@@ -122,7 +122,7 @@ class RTU_Url_Selftest {
 		$response = wp_remote_get( // phpcs:ignore WordPress.WP.AlternativeFunctions.wp_remote_get_wp_remote_get -- loopback self-test, admin-triggered
 			$url,
 			array(
-				'timeout'     => 5,
+				'timeout'     => 3,
 				'sslverify'   => false,
 				'redirection' => 0,
 			)
@@ -173,18 +173,23 @@ class RTU_Url_Selftest {
 		$active = RTU_Options::get_active_taxonomies();
 		$total  = 0;
 		foreach ( $active as $taxonomy ) {
-			$count  = wp_count_terms(
+			$ids    = get_terms(
 				array(
 					'taxonomy'   => $taxonomy,
 					'hide_empty' => false,
+					'fields'     => 'ids',
 				)
 			);
-			$total += is_wp_error( $count ) ? 0 : (int) $count;
+			$total += is_wp_error( $ids ) ? 0 : count( $ids );
 		}
-		$sample = $this->sample_terms( $active, $limit );
-		$rows   = array();
+		$sample   = $this->sample_terms( $active, $limit );
+		$rows     = array();
+		$deadline = microtime( true ) + 20.0; // Hard cap so the admin AJAX request never runs away on slow hosts.
 		foreach ( $sample as $row ) {
 			$rows[] = $this->check_term( $row );
+			if ( microtime( true ) >= $deadline ) {
+				break; // Stop early; report only what we tested.
+			}
 		}
 		return array(
 			'rows'   => $rows,
