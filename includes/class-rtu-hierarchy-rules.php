@@ -27,6 +27,13 @@ class RTU_Hierarchy_Rules {
 	const MAX_CHILD_TERMS = 2000;
 
 	/**
+	 * Taxonomies skipped this generation because they exceeded MAX_CHILD_TERMS.
+	 *
+	 * @var array<string,int> taxonomy => child count
+	 */
+	private $skipped = array();
+
+	/**
 	 * Full slug path for a term: ancestor slugs (root-first) joined with its own slug.
 	 *
 	 * Guards against orphan/circular parent chains with a visited set and a hard cap,
@@ -62,5 +69,65 @@ class RTU_Hierarchy_Rules {
 		}
 
 		return implode( '/', $segments );
+	}
+
+	/**
+	 * Build the explicit nested rewrite rules for every active taxonomy's child terms.
+	 *
+	 * @return array<string,string> Rewrite rule regex => index.php target.
+	 */
+	public function generate_rules() {
+		$this->skipped = array();
+		$rules         = array();
+
+		if ( ! RTU_Options::is_feature_enabled( 'rtu_enable_hierarchy' ) ) {
+			return $rules;
+		}
+
+		foreach ( RTU_Options::get_active_taxonomies() as $taxonomy ) {
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => false,
+				)
+			);
+			if ( is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			$children = array_filter(
+				$terms,
+				static function ( $t ) {
+					return 0 !== (int) $t->parent;
+				}
+			);
+
+			if ( count( $children ) > self::MAX_CHILD_TERMS ) {
+				$this->skipped[ $taxonomy ] = count( $children );
+				continue;
+			}
+
+			foreach ( $children as $term ) {
+				$path = self::term_path( $term, $taxonomy );
+				if ( '' === $path || false === strpos( $path, '/' ) ) {
+					continue; // No real ancestor path; flat rules already cover it.
+				}
+				$quoted = preg_quote( $path, '#' );
+
+				$rules[ '^' . $quoted . '/?$' ]                   = 'index.php?' . $taxonomy . '=' . $term->slug;
+				$rules[ '^' . $quoted . '/page/?([0-9]{1,})/?$' ] = 'index.php?' . $taxonomy . '=' . $term->slug . '&paged=$matches[1]';
+			}
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Taxonomies skipped in the last generate_rules() call due to the child-term cap.
+	 *
+	 * @return array<string,int> taxonomy => child count
+	 */
+	public function get_skipped_taxonomies() {
+		return $this->skipped;
 	}
 }
