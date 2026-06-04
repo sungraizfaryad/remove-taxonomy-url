@@ -16,7 +16,7 @@ if ( ! defined( 'WPINC' ) ) {
 final class RTU_Options {
 
 	const OPTION_KEY = 'rtu_basics';
-	const DB_VERSION = '3.0.1';
+	const DB_VERSION = '3.1.0';
 
 	/**
 	 * Per-request cache of the option array.
@@ -142,6 +142,51 @@ final class RTU_Options {
 		if ( self::OPTION_KEY === $option ) {
 			self::flush_cache();
 		}
+	}
+
+	/**
+	 * Unix timestamp of the last rewrite-rule flush the plugin performed, or 0.
+	 *
+	 * @return int
+	 */
+	public static function get_last_flushed() {
+		return (int) get_option( 'rtu_last_flushed', 0 );
+	}
+
+	/**
+	 * Record the time of a rewrite-rule flush.
+	 *
+	 * @param int $timestamp Unix timestamp.
+	 * @return void
+	 */
+	public static function set_last_flushed( $timestamp ) {
+		update_option( 'rtu_last_flushed', (int) $timestamp, false );
+	}
+
+	/**
+	 * Count child terms (parent != 0) across the active taxonomies.
+	 *
+	 * @return int
+	 */
+	public static function count_child_terms() {
+		$count = 0;
+		foreach ( self::get_active_taxonomies() as $taxonomy ) {
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => false,
+					'fields'     => 'id=>parent',
+				)
+			);
+			if ( ! is_wp_error( $terms ) ) {
+				foreach ( $terms as $parent_id ) {
+					if ( 0 !== (int) $parent_id ) {
+						++$count;
+					}
+				}
+			}
+		}
+		return $count;
 	}
 
 	/**

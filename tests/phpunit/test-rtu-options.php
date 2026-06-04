@@ -5,6 +5,7 @@ class RTU_Options_Test extends WP_UnitTestCase {
         delete_option( 'rtu_basics' );
         delete_option( 'rtu_db_version' );
         delete_option( 'rtu_30_notice_dismissed' );
+        delete_option( 'rtu_last_flushed' );
         RTU_Options::flush_cache();
         parent::tearDown();
     }
@@ -69,7 +70,7 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $this->assertSame( '', $clean['rtu_enable_pagination'] );
         $this->assertSame( 'on', $clean['rtu_enable_hierarchy'] );
         $this->assertSame( '', $clean['rtu_enable_collision'] );
-        $this->assertSame( '3.0.1', $clean['rtu_db_version'] );
+        $this->assertSame( '3.1.0', $clean['rtu_db_version'] );
         unregister_taxonomy( 'genre' );
     }
 
@@ -130,7 +131,7 @@ class RTU_Options_Test extends WP_UnitTestCase {
 
         RTU_Options::maybe_migrate();
 
-        $this->assertSame( '3.0.1', get_option( 'rtu_db_version' ) );
+        $this->assertSame( '3.1.0', get_option( 'rtu_db_version' ) );
         $this->assertSame( 0, (int) get_option( 'rtu_30_notice_dismissed', -1 ) );
     }
 
@@ -149,8 +150,8 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $this->assertSame( '', $stored['rtu_enable_pagination'] );
         $this->assertSame( '', $stored['rtu_enable_hierarchy'] );
         $this->assertSame( 'on', $stored['rtu_enable_collision'] );
-        $this->assertSame( '3.0.1', $stored['rtu_db_version'] );
-        $this->assertSame( '3.0.1', get_option( 'rtu_db_version' ) );
+        $this->assertSame( '3.1.0', $stored['rtu_db_version'] );
+        $this->assertSame( '3.1.0', get_option( 'rtu_db_version' ) );
     }
 
     public function test_maybe_migrate_normalizes_legacy_3_0_0_storage() {
@@ -179,7 +180,7 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $this->assertSame( '', $stored['rtu_enable_pagination'] );
         $this->assertSame( 'on', $stored['rtu_enable_hierarchy'] );
         $this->assertSame( 'on', $stored['rtu_enable_collision'] );
-        $this->assertSame( '3.0.1', $stored['rtu_db_version'] );
+        $this->assertSame( '3.1.0', $stored['rtu_db_version'] );
     }
 
     public function test_maybe_migrate_normalizes_boolean_true_flags() {
@@ -220,9 +221,9 @@ class RTU_Options_Test extends WP_UnitTestCase {
         update_option( 'rtu_basics', [
             'rtu_post_types'      => [ 'genre' => 'genre' ],
             'rtu_enable_redirect' => 'on',
-            'rtu_db_version'      => '3.0.1',
+            'rtu_db_version'      => '3.1.0',
         ] );
-        update_option( 'rtu_db_version', '3.0.1' );
+        update_option( 'rtu_db_version', '3.1.0' );
         RTU_Options::flush_cache();
 
         RTU_Options::maybe_migrate();
@@ -231,4 +232,27 @@ class RTU_Options_Test extends WP_UnitTestCase {
         $this->assertSame( 'on', $stored['rtu_enable_redirect'] ); // Not reset.
         $this->assertSame( [ 'genre' => 'genre' ], $stored['rtu_post_types'] );
     }
+
+	public function test_db_version_is_3_1_0() {
+		$this->assertSame( '3.1.0', RTU_Options::DB_VERSION );
+	}
+
+	public function test_last_flushed_round_trips() {
+		delete_option( 'rtu_last_flushed' );
+		$this->assertSame( 0, RTU_Options::get_last_flushed() );
+		RTU_Options::set_last_flushed( 1700000000 );
+		$this->assertSame( 1700000000, RTU_Options::get_last_flushed() );
+	}
+
+	public function test_count_child_terms_counts_only_children_of_active_taxonomies() {
+		register_taxonomy( 'genre', 'post', array( 'hierarchical' => true ) );
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'genre', 'slug' => 'rock' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'genre', 'slug' => 'punk', 'parent' => $parent ) );
+		self::factory()->term->create( array( 'taxonomy' => 'genre', 'slug' => 'metal' ) ); // top-level
+		update_option( 'rtu_basics', array( 'rtu_post_types' => array( 'genre' => 'genre' ) ) );
+		RTU_Options::flush_cache();
+
+		$this->assertSame( 1, RTU_Options::count_child_terms() );
+		unregister_taxonomy( 'genre' );
+	}
 }
