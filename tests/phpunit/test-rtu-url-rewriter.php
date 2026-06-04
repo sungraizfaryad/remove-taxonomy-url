@@ -62,7 +62,7 @@ class RTU_Url_Rewriter_Test extends WP_UnitTestCase {
         $this->assertSame( 'rock', $out['genre'] );
     }
 
-    public function test_filter_request_walks_parent_chain_when_hierarchical_enabled() {
+    public function test_filter_request_resolves_leaf_slug_when_hierarchical_enabled() {
         unregister_taxonomy( 'genre' );
         register_taxonomy(
             'genre',
@@ -79,7 +79,7 @@ class RTU_Url_Rewriter_Test extends WP_UnitTestCase {
         RTU_Options::flush_cache();
 
         $out = $this->rewriter->filter_request( [ 'name' => 'punk' ] );
-        $this->assertSame( 'rock/punk', $out['genre'] );
+        $this->assertSame( 'punk', $out['genre'] );
     }
 
     public function test_filter_request_skips_hierarchy_when_disabled() {
@@ -151,5 +151,24 @@ class RTU_Url_Rewriter_Test extends WP_UnitTestCase {
 
 		$this->assertSame( 'https://example.com/lisbon/', $link );
 		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_request_resolves_flat_child_to_leaf_slug_without_path() {
+		register_taxonomy( 'geo2', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo2', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo2', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo2' => 'geo2' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$rewriter = new RTU_Url_Rewriter();
+		$out      = $rewriter->filter_request( array( 'name' => 'lisbon' ) );
+
+		// Leaf slug only — NOT "portugal/lisbon".
+		$this->assertSame( 'lisbon', $out['geo2'] );
+		$this->assertArrayNotHasKey( 'name', $out );
+		unregister_taxonomy( 'geo2' );
 	}
 }
