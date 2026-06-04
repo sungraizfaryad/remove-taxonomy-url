@@ -191,8 +191,9 @@ final class RTU_Options {
 
 	/**
 	 * Migrate options from any older schema to the current DB version. Idempotent.
-	 * Triggered by the activation hook, an upgrader_process_complete listener, and
-	 * a plugins_loaded fallback.
+	 * Triggered by the activation hook and a plugins_loaded fallback. A separate
+	 * upgrader_process_complete listener (in the main plugin file) arms a rewrite-rule
+	 * flush after an in-place update so the hierarchy rules regenerate with the new code.
 	 *
 	 * On a first 3.0 boot:
 	 *   - Merges new feature-flag defaults into rtu_basics without clobbering rtu_post_types
