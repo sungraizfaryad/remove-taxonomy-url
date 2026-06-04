@@ -123,11 +123,19 @@ class Remove_Taxonomy_Url_Admin {
 			'rtu-health-check',
 			'rtuHealthCheckL10n',
 			array(
-				'taxonomy'      => __( 'Taxonomy', 'remove-taxonomy-url' ),
-				'termSlug'      => __( 'Term slug', 'remove-taxonomy-url' ),
-				'conflictsWith' => __( 'Conflicts with', 'remove-taxonomy-url' ),
-				'noConflicts'   => __( 'No collisions found.', 'remove-taxonomy-url' ),
-				'failed'        => __( 'Audit failed.', 'remove-taxonomy-url' ),
+				'taxonomy'       => __( 'Taxonomy', 'remove-taxonomy-url' ),
+				'termSlug'       => __( 'Term slug', 'remove-taxonomy-url' ),
+				'conflictsWith'  => __( 'Conflicts with', 'remove-taxonomy-url' ),
+				'noConflicts'    => __( 'No collisions found.', 'remove-taxonomy-url' ),
+				'failed'         => __( 'Audit failed.', 'remove-taxonomy-url' ),
+				'result'         => __( 'Result', 'remove-taxonomy-url' ),
+				'tested'         => __( 'Tested', 'remove-taxonomy-url' ),
+				'internal'       => __( 'internal check', 'remove-taxonomy-url' ),
+				'hierarchyLabel' => __( 'Hierarchical term URLs', 'remove-taxonomy-url' ),
+				'on'             => __( 'ON', 'remove-taxonomy-url' ),
+				'off'            => __( 'OFF', 'remove-taxonomy-url' ),
+				'childUrls'      => __( 'child terms use', 'remove-taxonomy-url' ),
+				'childTerms'     => __( 'child terms', 'remove-taxonomy-url' ),
 			)
 		);
 	}

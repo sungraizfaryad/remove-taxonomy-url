@@ -24,4 +24,15 @@ $rtu_audit_nonce = wp_create_nonce( RTU_Conflict_Detector::NONCE );
 		<span class="spinner" style="float:none;"></span>
 	</p>
 	<div id="rtu-audit-results"></div>
+	<div id="rtu-hierarchy-status" style="margin-top:1em;"></div>
+	<p style="margin-top:1.5em;">
+		<button type="button" class="button" id="rtu-run-selftest"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( RTU_Url_Selftest::NONCE ) ); ?>"
+			data-action="<?php echo esc_attr( RTU_Url_Selftest::AJAX_ACTION ); ?>">
+			<?php esc_html_e( 'Test all term URLs', 'remove-taxonomy-url' ); ?>
+		</button>
+		<span class="spinner" style="float:none;"></span>
+	</p>
+	<p class="description"><?php esc_html_e( 'Requests a sample of your term URLs and reports which resolve (200) or fail (404). Catches broken URLs from any cause.', 'remove-taxonomy-url' ); ?></p>
+	<div id="rtu-selftest-results"></div>
 </div>
