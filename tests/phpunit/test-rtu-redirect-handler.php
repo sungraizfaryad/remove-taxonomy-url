@@ -62,4 +62,63 @@ class RTU_Redirect_Handler_Test extends WP_UnitTestCase {
         $target = $this->handler->compute_target( '/genre/rock/page/2/' );
         $this->assertSame( '/rock/page/2/', $target );
     }
+
+	public function test_canonical_target_flat_child_to_nested() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$handler = new RTU_Redirect_Handler();
+		$this->assertSame( '/portugal/lisbon/', $handler->compute_canonical( '/lisbon/' ) );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_canonical_target_null_for_top_level() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$handler = new RTU_Redirect_Handler();
+		$this->assertNull( $handler->compute_canonical( '/portugal/' ) );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_canonical_target_null_when_already_nested() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => 'on',
+		) );
+		RTU_Options::flush_cache();
+
+		$handler = new RTU_Redirect_Handler();
+		$this->assertNull( $handler->compute_canonical( '/portugal/lisbon/' ) );
+		unregister_taxonomy( 'geo' );
+	}
+
+	public function test_canonical_target_null_when_hierarchy_off() {
+		register_taxonomy( 'geo', 'post', array( 'hierarchical' => true ) );
+		$pt = self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'portugal' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'geo', 'slug' => 'lisbon', 'parent' => $pt ) );
+		update_option( 'rtu_basics', array(
+			'rtu_post_types'       => array( 'geo' => 'geo' ),
+			'rtu_enable_hierarchy' => '',
+		) );
+		RTU_Options::flush_cache();
+
+		$handler = new RTU_Redirect_Handler();
+		$this->assertNull( $handler->compute_canonical( '/lisbon/' ) );
+		unregister_taxonomy( 'geo' );
+	}
 }

@@ -22,7 +22,8 @@ class RTU_Redirect_Handler {
 	 * @return void
 	 */
 	public function register_hooks( $loader ) {
-		if ( ! RTU_Options::is_feature_enabled( 'rtu_enable_redirect' ) ) {
+		if ( ! RTU_Options::is_feature_enabled( 'rtu_enable_redirect' )
+			&& ! RTU_Options::is_feature_enabled( 'rtu_enable_hierarchy' ) ) {
 			return;
 		}
 		$loader->add_action( 'template_redirect', $this, 'maybe_redirect', 99 );
@@ -55,6 +56,12 @@ class RTU_Redirect_Handler {
 			: '';
 		if ( '' === $request_uri ) {
 			return;
+		}
+
+		$canonical = $this->compute_canonical( $request_uri );
+		if ( null !== $canonical ) {
+			wp_safe_redirect( $canonical, 301 );
+			exit;
 		}
 
 		$target = $this->compute_target( $request_uri );
@@ -98,6 +105,40 @@ class RTU_Redirect_Handler {
 				return null;
 			}
 			return $target;
+		}
+		return null;
+	}
+
+	/**
+	 * Canonical target for a flat child-term request when hierarchy is ON.
+	 *
+	 * Given an incoming path, if it is the flat single-segment URL of a child term
+	 * (e.g. /lisbon/), return the canonical nested path (/portugal/lisbon/). Returns
+	 * null when hierarchy is off, the term is top-level, the path is already nested,
+	 * or no term matches.
+	 *
+	 * @param string $request_uri Request path with leading slash.
+	 * @return string|null
+	 */
+	public function compute_canonical( $request_uri ) {
+		if ( ! RTU_Options::is_feature_enabled( 'rtu_enable_hierarchy' ) ) {
+			return null;
+		}
+		$path = wp_parse_url( $request_uri, PHP_URL_PATH );
+		$path = is_string( $path ) ? trim( $path, '/' ) : '';
+		if ( '' === $path || false !== strpos( $path, '/' ) ) {
+			return null; // Empty or already multi-segment (nested) — nothing to do.
+		}
+		foreach ( RTU_Options::get_active_taxonomies() as $taxonomy ) {
+			$term = get_term_by( 'slug', $path, $taxonomy );
+			if ( ! $term || is_wp_error( $term ) || 0 === (int) $term->parent ) {
+				continue;
+			}
+			$full = RTU_Hierarchy_Rules::term_path( $term, $taxonomy );
+			if ( '' === $full || false === strpos( $full, '/' ) ) {
+				continue;
+			}
+			return '/' . $full . '/';
 		}
 		return null;
 	}
