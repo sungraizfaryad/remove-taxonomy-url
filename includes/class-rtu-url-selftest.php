@@ -141,6 +141,29 @@ class RTU_Url_Selftest {
 	}
 
 	/**
+	 * Register hooks via the plugin loader.
+	 *
+	 * @param Remove_Taxonomy_Url_Loader $loader Plugin loader.
+	 * @return void
+	 */
+	public function register_hooks( $loader ) {
+		$loader->add_action( 'wp_ajax_' . self::AJAX_ACTION, $this, 'ajax_run' );
+	}
+
+	/**
+	 * AJAX endpoint for the URL resolution self-test.
+	 *
+	 * @return void
+	 */
+	public function ajax_run() {
+		check_ajax_referer( self::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		wp_send_json_success( $this->run( 25 ) );
+	}
+
+	/**
 	 * Run the self-test across active taxonomies.
 	 *
 	 * @param int $limit Max terms to test.

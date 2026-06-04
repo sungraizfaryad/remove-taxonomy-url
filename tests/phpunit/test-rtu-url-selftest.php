@@ -91,4 +91,11 @@ class RTU_Url_Selftest_Test extends WP_UnitTestCase {
 		$this->assertSame( 1, $result['total'] );
 		unregister_taxonomy( 'geo' );
 	}
+
+	public function test_register_hooks_binds_ajax_action() {
+		$loader = new Remove_Taxonomy_Url_Loader();
+		( new RTU_Url_Selftest() )->register_hooks( $loader );
+		$loader->run();
+		$this->assertNotFalse( has_action( 'wp_ajax_' . RTU_Url_Selftest::AJAX_ACTION ) );
+	}
 }

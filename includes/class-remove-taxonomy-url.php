@@ -188,6 +188,9 @@ class Remove_Taxonomy_Url {
 		$hierarchy = new RTU_Hierarchy_Rules();
 		$hierarchy->register_hooks( $this->loader );
 
+		$selftest = new RTU_Url_Selftest();
+		$selftest->register_hooks( $this->loader );
+
 		// Re-flush rewrite rules once after the rtu_basics option changes (taxonomy or
 		// hierarchy toggle), so new nested rules take effect without a manual permalink save.
 		$this->loader->add_action(
