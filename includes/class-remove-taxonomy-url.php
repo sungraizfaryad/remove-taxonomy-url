@@ -129,6 +129,7 @@ class Remove_Taxonomy_Url {
 		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-pagination-fix.php';
 		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-conflict-detector.php';
 		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-admin-notices.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-rtu-hierarchy-rules.php';
 
 		$this->loader = new Remove_Taxonomy_Url_Loader();
 	}
