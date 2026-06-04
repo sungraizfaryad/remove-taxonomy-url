@@ -25,6 +25,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Maintains and registers all actions and filters for the plugin.
+ */
 class Remove_Taxonomy_Url_Loader {
 
 	/**
