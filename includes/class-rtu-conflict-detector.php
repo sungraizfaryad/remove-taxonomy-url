@@ -134,6 +134,14 @@ class RTU_Conflict_Detector {
 	 * @return mixed Unmodified $new_value.
 	 */
 	public function warn_on_save( $new_value, $old_value ) {
+		// add_settings_error() lives in wp-admin/includes/template.php and is only
+		// available while rendering admin screens. This option can also be updated
+		// outside admin (e.g. during a migration on plugins_loaded, or via WP-CLI),
+		// so bail before touching it to avoid a fatal on front-end/login requests.
+		if ( ! function_exists( 'add_settings_error' ) ) {
+			return $new_value;
+		}
+
 		$collision_enabled = ( is_array( $new_value ) && array_key_exists( 'rtu_enable_collision', $new_value ) )
 			? ( 'on' === $new_value['rtu_enable_collision'] )
 			: true;
